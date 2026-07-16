@@ -1,15 +1,27 @@
 import QtQuick
 import Quickshell.Hyprland
+import Quickshell.Io
 import "../config" as Cfg
 
 // Hyprland workspaces via Quickshell.Hyprland (native hyprctl-backed IPC),
 // ported from quickshell-d77. Fixed 1-9 grid, unlike the niri widget —
 // Hyprland workspaces are a static set the user switches between, not
 // created on demand.
+//
+// Switching uses `hyprctl dispatch hl.dsp.focus({workspace = N})` — the
+// Lua-based custom dispatcher quickshell-d77 relies on throughout (see
+// also SessionMenu.qml's hl.dsp.exit() for logout) — not the plain
+// `hyprctl dispatch workspace N` / Quickshell.Hyprland's own dispatch(),
+// since this setup's Hyprland config only wires up the Lua dispatchers.
 Item {
     id: root
     implicitWidth: row.implicitWidth
     implicitHeight: parent ? parent.height : Cfg.Colors.barHeight
+
+    Process {
+        id: wsProc
+        running: false
+    }
 
     Row {
         id: row
@@ -45,7 +57,10 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch("workspace " + wsId)
+                    onClicked: {
+                        wsProc.command = ["hyprctl", "dispatch", "hl.dsp.focus({workspace = " + wsId + "})"]
+                        wsProc.running = true
+                    }
                 }
             }
         }
