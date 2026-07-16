@@ -4,6 +4,9 @@ import "../config" as Cfg
 
 Item {
     id: root
+    // Osd instance, wired from Bar.qml — click cycles the power profile
+    // and shows the result in the OSD, same as quickshell-d77's bar.
+    property var osd
     readonly property var device: UPower.displayDevice
     readonly property bool hasBattery: device && device.isLaptopBattery
     visible: hasBattery
@@ -44,5 +47,13 @@ Item {
                 return root.icon(pct, charging) + " " + pct + "%";
             }
         }
+    }
+
+    // Sibling of Row (not a child of it), so anchors.fill can overlay the
+    // whole widget instead of getting its own slot in Row's horizontal flow.
+    MouseArea {
+        anchors.fill: row
+        acceptedButtons: Qt.LeftButton
+        onClicked: root.osd && root.osd.cyclePowerProfile()
     }
 }

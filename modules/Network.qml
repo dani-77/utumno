@@ -1,11 +1,16 @@
 import QtQuick
 import Quickshell.Networking
+import Quickshell.Io
 import "../config" as Cfg
 
 Item {
     id: root
     implicitWidth: label.implicitWidth + Cfg.Colors.gap * 2
     implicitHeight: parent ? parent.height : Cfg.Colors.barHeight
+
+    // Terminal used to open nmtui, wired from Bar.qml (mirrors the
+    // launcher's auto-detected terminal, same as quickshell-d77's bar).
+    property string terminal: "alacritty"
 
     readonly property var activeDevice: {
         const devices = Networking.devices.values;
@@ -41,5 +46,22 @@ Item {
             const quality = Math.round(net.signalStrength * 100);
             return "󰤨 " + net.name + " " + quality + "%";
         }
+    }
+
+    // Opens nmtui in a floating terminal, same as quickshell-d77's bar.
+    Process {
+        id: nmtuiProc
+        running: false
+        command: ["sh", "-c",
+            root.terminal === "wezterm"
+                ? "setsid wezterm start --class nmtui-float -- nmtui >/dev/null 2>&1 &"
+                : "setsid " + root.terminal + " --class nmtui-float -e nmtui >/dev/null 2>&1 &"
+        ]
+    }
+
+    MouseArea {
+        anchors.fill: label
+        acceptedButtons: Qt.LeftButton
+        onClicked: nmtuiProc.running = true
     }
 }

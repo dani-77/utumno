@@ -31,9 +31,11 @@ ShellRoot {
     // ══════════════════════════════════════════════════════
     // LAUNCHER
     // ══════════════════════════════════════════════════════
+    // terminal is left unset: Launcher auto-detects it from
+    // _termCandidates, and Network.qml's nmtui-float reuses whatever
+    // it lands on — keeps both agnostic, matching quickshell-d77.
     Launcher {
         id: appLauncher
-        terminal: "alacritty"
     }
 
     // ══════════════════════════════════════════════════════
@@ -47,6 +49,7 @@ ShellRoot {
     Modules.Bar {
         appLauncher: appLauncher
         sessionMenu: sessionMenu
+        osd: osd
         compositor: root.compositor
     }
 

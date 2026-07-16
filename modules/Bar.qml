@@ -8,6 +8,7 @@ PanelWindow {
     id: bar
     property var appLauncher
     property var sessionMenu
+    property var osd
     property string compositor: "generic"
 
     anchors {
@@ -93,8 +94,12 @@ PanelWindow {
             Cpu {}
             Ram {}
             Volume {}
-            Network {}
-            Battery {}
+            Network {
+                terminal: bar.appLauncher ? bar.appLauncher.terminal : "alacritty"
+            }
+            Battery {
+                osd: bar.osd
+            }
 
             Rectangle { width: 1; height: 18; color: Cfg.Colors.muted }
 
