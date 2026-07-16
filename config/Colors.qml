@@ -21,4 +21,13 @@ QtObject {
     readonly property int radius: 10
     readonly property int barHeight: 32
     readonly property int gap: 8
+
+    // Extra tones/typography kept distinct from the base palette above,
+    // ported 1:1 from quickshell-d77's globalState (g) so modules copied
+    // from there (osd, launcher, dashboard, lockscreen, ...) stay visually
+    // identical without remapping every color reference.
+    readonly property color muted: "#444b6a"
+    readonly property color cyanAccent: "#0db9d7"
+    readonly property string font: "JetBrainsMono Nerd Font"
+    readonly property int fsize: 13
 }

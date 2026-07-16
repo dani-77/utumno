@@ -6,6 +6,10 @@ import "../config" as Cfg
 
 PanelWindow {
     id: bar
+    property var appLauncher
+    property var sessionMenu
+    property string compositor: "generic"
+
     anchors {
         top: true
         left: true
@@ -34,12 +38,49 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Cfg.Colors.gap
 
-            Workspaces {}
+            Rectangle {
+                width: 26
+                height: 26
+                radius: 6
+                color: launchMa.containsMouse ? Qt.lighter(Cfg.Colors.magenta, 1.3) : Cfg.Colors.magenta
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰍜"
+                    font.family: Cfg.Colors.font
+                    font.pixelSize: 10
+                    color: Cfg.Colors.bg
+                }
+                MouseArea {
+                    id: launchMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: bar.appLauncher && bar.appLauncher.toggle()
+                }
+            }
+
+            Rectangle { width: 1; height: 18; color: Cfg.Colors.muted }
+
+            // Hyprland/Sway use their own dedicated per-compositor widgets
+            // (fixed 1-9 grid, native IPC); niri and anything else
+            // (mangowc included) fall back to the generic ext-workspace-v1
+            // widget, which only shows workspaces that actually exist.
+            Loader {
+                sourceComponent: {
+                    if (bar.compositor === "hyprland") return workspacesHyprlandComp;
+                    if (bar.compositor === "sway") return workspacesSwayComp;
+                    return workspacesGenericComp;
+                }
+            }
+            Component { id: workspacesHyprlandComp; WorkspacesHyprland {} }
+            Component { id: workspacesSwayComp; WorkspacesSway {} }
+            Component { id: workspacesGenericComp; Workspaces {} }
         }
 
         RowLayout {
             anchors.centerIn: parent
             spacing: Cfg.Colors.gap
+            Weather {}
             Clock {}
         }
 
@@ -54,6 +95,30 @@ PanelWindow {
             Volume {}
             Network {}
             Battery {}
+
+            Rectangle { width: 1; height: 18; color: Cfg.Colors.muted }
+
+            Rectangle {
+                width: 26
+                height: 26
+                radius: 6
+                color: sessBtnMa.containsMouse || (bar.sessionMenu && bar.sessionMenu.sessionOpen)
+                    ? Cfg.Colors.red
+                    : Qt.rgba(0.97, 0.46, 0.56, 0.3)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "⏻"
+                    font.pixelSize: 14
+                    color: Cfg.Colors.red
+                }
+                MouseArea {
+                    id: sessBtnMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: bar.sessionMenu && bar.sessionMenu.toggle()
+                }
+            }
         }
     }
 }
