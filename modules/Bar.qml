@@ -11,15 +11,21 @@ PanelWindow {
         left: true
         right: true
     }
+    margins {
+        top: Cfg.Colors.gap
+        left: Cfg.Colors.gap
+        right: Cfg.Colors.gap
+    }
     implicitHeight: Cfg.Colors.barHeight
     color: "transparent"
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "helium-d77-bar"
-    exclusiveZone: implicitHeight
+    exclusiveZone: implicitHeight + Cfg.Colors.gap
 
     Rectangle {
         anchors.fill: parent
+        radius: Cfg.Colors.radius
         color: Cfg.Colors.bg
 
         RowLayout {
@@ -28,13 +34,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Cfg.Colors.gap
 
-            Text {
-                text: "helium-d77"
-                color: Cfg.Colors.blue
-                font.family: "monospace"
-                font.bold: true
-                font.pixelSize: 13
-            }
+            Workspaces {}
         }
 
         RowLayout {
@@ -49,6 +49,9 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Cfg.Colors.gap
 
+            Cpu {}
+            Ram {}
+            Volume {}
             Network {}
             Battery {}
         }
