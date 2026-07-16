@@ -30,8 +30,8 @@ Item {
 
             delegate: Rectangle {
                 required property var modelData
-                width: 22
-                height: 22
+                width: 26
+                height: 26
                 radius: Cfg.Colors.radius / 2
                 color: modelData.active ? Cfg.Colors.blue
                     : modelData.urgent ? Cfg.Colors.red
@@ -42,7 +42,7 @@ Item {
                     text: modelData.name
                     color: modelData.active ? Cfg.Colors.bg : Cfg.Colors.fgDark
                     font.family: "monospace"
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                 }
 
                 MouseArea {

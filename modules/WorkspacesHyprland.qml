@@ -25,8 +25,8 @@ Item {
                 property bool isActive: Hyprland.focusedWorkspace !== null &&
                                         Hyprland.focusedWorkspace.id === wsId
 
-                width: 22
-                height: 22
+                width: 26
+                height: 26
                 radius: Cfg.Colors.radius / 2
                 color: isActive ? Cfg.Colors.blue
                     : ws ? Cfg.Colors.bgHighlight
@@ -39,7 +39,7 @@ Item {
                          : parent.ws      ? Cfg.Colors.fgDark
                          : Cfg.Colors.comment
                     font.family: "monospace"
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                 }
 
                 MouseArea {

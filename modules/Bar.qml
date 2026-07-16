@@ -40,16 +40,16 @@ PanelWindow {
             spacing: Cfg.Colors.gap
 
             Rectangle {
-                width: 26
-                height: 26
-                radius: 6
+                width: 30
+                height: 30
+                radius: 7
                 color: launchMa.containsMouse ? Qt.lighter(Cfg.Colors.magenta, 1.3) : Cfg.Colors.magenta
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰍜"
                     font.family: Cfg.Colors.font
-                    font.pixelSize: 10
+                    font.pixelSize: 13
                     color: Cfg.Colors.bg
                 }
                 MouseArea {
@@ -60,7 +60,7 @@ PanelWindow {
                 }
             }
 
-            Rectangle { width: 1; height: 18; color: Cfg.Colors.muted }
+            Rectangle { width: 1; height: 22; color: Cfg.Colors.muted }
 
             // Hyprland/Sway use their own dedicated per-compositor widgets
             // (fixed 1-9 grid, native IPC); niri and anything else
@@ -101,12 +101,12 @@ PanelWindow {
                 osd: bar.osd
             }
 
-            Rectangle { width: 1; height: 18; color: Cfg.Colors.muted }
+            Rectangle { width: 1; height: 22; color: Cfg.Colors.muted }
 
             Rectangle {
-                width: 26
-                height: 26
-                radius: 6
+                width: 30
+                height: 30
+                radius: 7
                 color: sessBtnMa.containsMouse || (bar.sessionMenu && bar.sessionMenu.sessionOpen)
                     ? Cfg.Colors.red
                     : Qt.rgba(0.97, 0.46, 0.56, 0.3)
@@ -114,7 +114,7 @@ PanelWindow {
                 Text {
                     anchors.centerIn: parent
                     text: "⏻"
-                    font.pixelSize: 14
+                    font.pixelSize: 16
                     color: Cfg.Colors.red
                 }
                 MouseArea {

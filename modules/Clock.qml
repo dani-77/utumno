@@ -20,7 +20,7 @@ Item {
         anchors.centerIn: parent
         color: Cfg.Colors.fg
         font.family: "monospace"
-        font.pixelSize: 13
+        font.pixelSize: Cfg.Colors.fsize
         text: Qt.formatDateTime(new Date(), root.format)
     }
 }

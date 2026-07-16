@@ -36,7 +36,7 @@ Item {
 
         Text {
             font.family: "monospace"
-            font.pixelSize: 13
+            font.pixelSize: Cfg.Colors.fsize
             color: root.device && root.device.state === UPowerDeviceState.Charging
                 ? Cfg.Colors.green
                 : (root.device && root.device.percentage < 0.2 ? Cfg.Colors.red : Cfg.Colors.fg)
