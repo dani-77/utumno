@@ -11,17 +11,39 @@ dashboard, music picker and greeter, which quickshell-d77 still owns.
 
 Floating top bar (`modules/Bar.qml`, rounded corners, gap from screen edges) with:
 
-- `Workspaces.qml` — niri workspaces via the compositor-agnostic
-  `Quickshell.WindowManager` (`ext-workspace-v1`) module, click to switch. Shows only the
-  workspaces that actually exist (niri creates them dynamically), not a fixed 1-9 grid.
+- **Workspaces** — a `Loader` in `Bar.qml` picks the right widget for the running
+  compositor (`shell.qml`'s `compositor` detection), matching quickshell-d77's own
+  per-compositor approach instead of one generic widget for everyone:
+  - `WorkspacesHyprland.qml` — fixed 1-9 grid via `Quickshell.Hyprland`. Switching goes
+    through `hyprctl dispatch "hl.dsp.focus({workspace = N})"` (a `Process`, not
+    `Quickshell.Hyprland.dispatch()`) because this setup's Hyprland config only wires up
+    custom Lua dispatchers (`hl.dsp.focus`/`hl.dsp.exit`, same as `session/SessionMenu.qml`'s
+    logout) — the plain dispatch call is silently rejected by Hyprland's Lua layer.
+    **Verified working** against a real Hyprland instance.
+  - `WorkspacesSway.qml` — fixed 1-9 grid via `Quickshell.I3` (Sway implements the i3 IPC
+    protocol). **Verified working.**
+  - `Workspaces.qml` — the compositor-agnostic `Quickshell.WindowManager`
+    (`ext-workspace-v1`) widget, used for niri and anything else (mangowc included). Shows
+    only the workspaces that actually exist (niri creates them dynamically), not a fixed
+    1-9 grid. **Verified working** on niri.
 - `Clock.qml`
+- `Weather.qml` — wttr.in condition icon + temperature (`?format=%c+%t`), polled every
+  15 min, shown left of the clock (ported from quickshell-d77's Dashboard, minus the
+  location text — no room for it in a bar widget)
 - `Cpu.qml` / `Ram.qml` — usage % polled from `/proc/stat` / `/proc/meminfo`
 - `Volume.qml` — ALSA volume/mute via `amixer` (this setup runs plain PulseAudio,
   not PipeWire, so volume is read through ALSA rather than
   `Quickshell.Services.Pipewire`)
-- `Network.qml` — SSID + signal quality via `Quickshell.Networking`
-- `Battery.qml` — state-dependent Nerd Font icon (charging/level) + % via `UPower.displayDevice`
+- `Network.qml` — SSID + signal quality via `Quickshell.Networking`; click opens `nmtui`
+  in a floating terminal (`--class nmtui-float`), same as quickshell-d77's bar
+- `Battery.qml` — state-dependent Nerd Font icon (charging/level) + % via
+  `UPower.displayDevice`; click cycles the power profile
+  (`osd.cyclePowerProfile()`/`powerprofilesctl`), same as quickshell-d77's bar
 - Launcher button (left) and session button (right, ⏻), both ported from quickshell-d77
+
+The launcher and `nmtui-float` share one auto-detected terminal (`Launcher.qml`'s
+`_termCandidates`: alacritty > kitty > foot > wezterm > xterm) — nothing hardcoded, matching
+quickshell-d77.
 
 Plus, ported from quickshell-d77 and adapted to this shell's `config/Colors.qml` palette
 instead of an inline `g` singleton:
@@ -95,14 +117,17 @@ qs -c helium-d77 -p /path/to/helium-d77
 helium-d77/
 ├── shell.qml              # entry point: compositor detection, module wiring, IpcHandlers
 ├── modules/
-│   ├── Bar.qml             # PanelWindow (WlrLayer.Top), floating + rounded
-│   ├── Workspaces.qml      # niri workspaces via Quickshell.WindowManager
+│   ├── Bar.qml               # PanelWindow (WlrLayer.Top), floating + rounded
+│   ├── Workspaces.qml        # niri/generic workspaces via Quickshell.WindowManager
+│   ├── WorkspacesHyprland.qml # Hyprland workspaces via Quickshell.Hyprland + hl.dsp.focus
+│   ├── WorkspacesSway.qml    # Sway workspaces via Quickshell.I3
 │   ├── Clock.qml
-│   ├── Cpu.qml             # /proc/stat polling
-│   ├── Ram.qml             # /proc/meminfo polling
-│   ├── Volume.qml          # amixer (ALSA)
-│   ├── Network.qml         # SSID via Quickshell.Networking
-│   └── Battery.qml         # via UPower.displayDevice
+│   ├── Weather.qml           # wttr.in condition icon + temperature
+│   ├── Cpu.qml               # /proc/stat polling
+│   ├── Ram.qml               # /proc/meminfo polling
+│   ├── Volume.qml            # amixer (ALSA)
+│   ├── Network.qml           # SSID via Quickshell.Networking, click opens nmtui
+│   └── Battery.qml           # via UPower.displayDevice, click cycles power profile
 ├── config/
 │   └── Colors.qml          # Tokyo Night singleton (colors + font/fsize)
 ├── Services/
