@@ -1,4 +1,4 @@
-# helium-d77
+# Utumno
 
 A minimal QML/Quickshell desktop shell for [niri](https://github.com/YaLTeR/niri), in the
 same spirit as [`fabric-d77`](https://github.com/dani-77/fabric-d77) and
