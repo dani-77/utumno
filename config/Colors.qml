@@ -29,5 +29,5 @@ QtObject {
     readonly property color muted: "#444b6a"
     readonly property color cyanAccent: "#0db9d7"
     readonly property string font: "JetBrainsMono Nerd Font"
-    readonly property int fsize: 15
+    readonly property int fsize: 13
 }

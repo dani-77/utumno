@@ -34,6 +34,7 @@ PanelWindow {
         color: Cfg.Colors.bg
 
         RowLayout {
+            id: leftRow
             anchors.left: parent.left
             anchors.leftMargin: Cfg.Colors.gap
             anchors.verticalCenter: parent.verticalCenter
@@ -79,13 +80,22 @@ PanelWindow {
         }
 
         RowLayout {
-            anchors.centerIn: parent
+            id: centerRow
+            anchors.verticalCenter: parent.verticalCenter
+            x: Math.max(
+                leftRow.x + leftRow.width + Cfg.Colors.gap * 3,
+                Math.min(
+                    rightRow.x - width - Cfg.Colors.gap * 3,
+                    (parent.width - width) / 2
+                )
+            )
             spacing: Cfg.Colors.gap
             Weather {}
             Clock {}
         }
 
         RowLayout {
+            id: rightRow
             anchors.right: parent.right
             anchors.rightMargin: Cfg.Colors.gap
             anchors.verticalCenter: parent.verticalCenter
