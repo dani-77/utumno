@@ -75,7 +75,7 @@ PanelWindow {
     function apply(path) {
         currentWallpaper = path
         lastError = ""
-        wallpaperProc.command = [Quickshell.shellDir + "/wallpaper/set-wallpaper.sh", "apply", path, wallpaper.monitor]
+        wallpaperProc.command = [Quickshell.shellPath("wallpaper/set-wallpaper.sh"), "apply", path, wallpaper.monitor]
         wallpaperProc.running = true
     }
 
@@ -179,7 +179,7 @@ PanelWindow {
     // login.
     Process {
         id: clearProc
-        command: [Quickshell.shellDir + "/wallpaper/set-wallpaper.sh", "clear"]
+        command: [Quickshell.shellPath("wallpaper/set-wallpaper.sh"), "clear"]
         running: false
         onExited: function(code) {
             if (code !== 0)
