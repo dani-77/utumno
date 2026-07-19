@@ -89,32 +89,32 @@ Optional, depending on which ported modules you use:
 ## Installation
 
 ```sh
-git clone https://github.com/dani-77/helium-d77 ~/.config/quickshell/helium-d77
+git clone https://github.com/dani-77/utumno ~/.config/quickshell/utumno
 ```
 
 Add to your niri `config.kdl`:
 
 ```kdl
-spawn-at-startup "qs" "-c" "helium-d77"
+spawn-at-startup "qs" "-c" "utumno"
 ```
 
 If you use the wallpaper picker, restore the last wallpaper at login too (niri has no
 preload step like Hyprland's hyprpaper, so this just re-applies it after startup):
 
 ```kdl
-spawn-at-startup "sh" "-c" "~/.config/quickshell/helium-d77/wallpaper/set-wallpaper.sh startup"
+spawn-at-startup "sh" "-c" "~/.config/quickshell/utumno/wallpaper/set-wallpaper.sh startup"
 ```
 
 To test without installing into `~/.config/quickshell/` first:
 
 ```sh
-qs -c helium-d77 -p /path/to/helium-d77
+qs -c utumno -p /path/to/utumno
 ```
 
 ## Structure
 
 ```
-helium-d77/
+utumno/
 ├── shell.qml              # entry point: compositor detection, module wiring, IpcHandlers
 ├── modules/
 │   ├── Bar.qml               # PanelWindow (WlrLayer.Top), floating + rounded
@@ -160,53 +160,53 @@ helium-d77/
 Every target/function name matches quickshell-d77 exactly:
 
 ```sh
-qs -c helium-d77 ipc call helium reload
+qs -c utumno ipc call utumno reload
 
-qs -c helium-d77 ipc call launcher toggle
-qs -c helium-d77 ipc call launcher open
-qs -c helium-d77 ipc call launcher close
+qs -c utumno ipc call launcher toggle
+qs -c utumno ipc call launcher open
+qs -c utumno ipc call launcher close
 
-qs -c helium-d77 ipc call wallpaper toggle
-qs -c helium-d77 ipc call wallpaper open
-qs -c helium-d77 ipc call wallpaper close
-qs -c helium-d77 ipc call wallpaper reload
-qs -c helium-d77 ipc call wallpaper set /path/to/image.png
-qs -c helium-d77 ipc call wallpaper random
-qs -c helium-d77 ipc call wallpaper clear
+qs -c utumno ipc call wallpaper toggle
+qs -c utumno ipc call wallpaper open
+qs -c utumno ipc call wallpaper close
+qs -c utumno ipc call wallpaper reload
+qs -c utumno ipc call wallpaper set /path/to/image.png
+qs -c utumno ipc call wallpaper random
+qs -c utumno ipc call wallpaper clear
 
-qs -c helium-d77 ipc call lockscreen lock
-qs -c helium-d77 ipc call lockscreen unlock
-qs -c helium-d77 ipc call lockscreen toggle
+qs -c utumno ipc call lockscreen lock
+qs -c utumno ipc call lockscreen unlock
+qs -c utumno ipc call lockscreen toggle
 
-qs -c helium-d77 ipc call session toggle
-qs -c helium-d77 ipc call session open
-qs -c helium-d77 ipc call session close
+qs -c utumno ipc call session toggle
+qs -c utumno ipc call session open
+qs -c utumno ipc call session close
 
-qs -c helium-d77 ipc call osd volumeUp
-qs -c helium-d77 ipc call osd volumeDown
-qs -c helium-d77 ipc call osd volumeMuteToggle
-qs -c helium-d77 ipc call osd brightnessUp
-qs -c helium-d77 ipc call osd brightnessDown
-qs -c helium-d77 ipc call osd showVolume
-qs -c helium-d77 ipc call osd showBrightness
+qs -c utumno ipc call osd volumeUp
+qs -c utumno ipc call osd volumeDown
+qs -c utumno ipc call osd volumeMuteToggle
+qs -c utumno ipc call osd brightnessUp
+qs -c utumno ipc call osd brightnessDown
+qs -c utumno ipc call osd showVolume
+qs -c utumno ipc call osd showBrightness
 
-qs -c helium-d77 ipc show     # list every target/function exposed
+qs -c utumno ipc show     # list every target/function exposed
 ```
 
 ### Suggested niri keybinds (`config.kdl`)
 
 ```kdl
 binds {
-    Mod+D          { spawn "qs" "-c" "helium-d77" "ipc" "call" "launcher" "toggle"; }
-    Mod+Shift+E    { spawn "qs" "-c" "helium-d77" "ipc" "call" "session" "toggle"; }
-    Mod+L          { spawn "qs" "-c" "helium-d77" "ipc" "call" "lockscreen" "lock"; }
-    Mod+Y          { spawn "qs" "-c" "helium-d77" "ipc" "call" "wallpaper" "toggle"; }
+    Mod+D          { spawn "qs" "-c" "utumno" "ipc" "call" "launcher" "toggle"; }
+    Mod+Shift+E    { spawn "qs" "-c" "utumno" "ipc" "call" "session" "toggle"; }
+    Mod+L          { spawn "qs" "-c" "utumno" "ipc" "call" "lockscreen" "lock"; }
+    Mod+Y          { spawn "qs" "-c" "utumno" "ipc" "call" "wallpaper" "toggle"; }
 
-    XF86AudioRaiseVolume  { spawn "qs" "-c" "helium-d77" "ipc" "call" "osd" "volumeUp"; }
-    XF86AudioLowerVolume  { spawn "qs" "-c" "helium-d77" "ipc" "call" "osd" "volumeDown"; }
-    XF86AudioMute         { spawn "qs" "-c" "helium-d77" "ipc" "call" "osd" "volumeMuteToggle"; }
-    XF86MonBrightnessUp   { spawn "qs" "-c" "helium-d77" "ipc" "call" "osd" "brightnessUp"; }
-    XF86MonBrightnessDown { spawn "qs" "-c" "helium-d77" "ipc" "call" "osd" "brightnessDown"; }
+    XF86AudioRaiseVolume  { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "volumeUp"; }
+    XF86AudioLowerVolume  { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "volumeDown"; }
+    XF86AudioMute         { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "volumeMuteToggle"; }
+    XF86MonBrightnessUp   { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "brightnessUp"; }
+    XF86MonBrightnessDown { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "brightnessDown"; }
 }
 ```
 

@@ -3,7 +3,7 @@
 // Session menu popup (lock/suspend/reboot/shutdown/logout) +
 // the session error banner. Ported from quickshell-d77's inline
 // shell.qml session menu, extracted into its own module since
-// helium-d77 has no Dashboard to embed it in.
+// utumno has no Dashboard to embed it in.
 //
 // Suspend/reboot/poweroff go through the freedesktop login1 D-Bus
 // interface via `loginctl`, which works identically whether it's
@@ -120,7 +120,7 @@ Scope {
         anchors.right:  true
 
         WlrLayershell.layer:         WlrLayer.Overlay
-        WlrLayershell.namespace:     "helium-d77-session"
+        WlrLayershell.namespace:     "utumno-session"
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
         onVisibleChanged: {
@@ -367,7 +367,7 @@ Scope {
         margins.top: 50
 
         WlrLayershell.layer:         WlrLayer.Overlay
-        WlrLayershell.namespace:     "helium-d77-session-error"
+        WlrLayershell.namespace:     "utumno-session-error"
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         exclusiveZone: 0
 

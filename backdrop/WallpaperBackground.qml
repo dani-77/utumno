@@ -25,7 +25,7 @@ Variants {
 
         WlrLayershell.layer:         WlrLayer.Bottom
         WlrLayershell.exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.namespace:     "helium-d77-backdrop"
+        WlrLayershell.namespace:     "utumno-backdrop"
 
         anchors {
             top:    true
