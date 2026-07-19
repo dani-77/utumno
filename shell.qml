@@ -115,7 +115,7 @@ ShellRoot {
     }
 
     IpcHandler {
-        target: "helium"
+        target: "utumno"
 
         function reload(): void {
             Qt.callLater(() => Quickshell.reload(true));
@@ -128,7 +128,7 @@ ShellRoot {
 
     // OSD IPC (volume via ALSA + brightness via brightnessctl).
     // Bind to multimedia keys in your compositor config, e.g.:
-    //   bindel = , XF86AudioRaiseVolume, exec, qs -c helium-d77 ipc call osd volumeUp
+    //   bindel = , XF86AudioRaiseVolume, exec, qs -c utumno ipc call osd volumeUp
     IpcHandler {
         target: "osd"
 

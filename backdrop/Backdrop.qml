@@ -17,7 +17,7 @@ Item {
     property color colPurple: Cfg.Colors.magenta
 
     // Logo shown in the bottom-left corner.
-    property string logoSource: "assets/d77-logo.svg"
+    property string logoSource: "assets/utumno-logo.svg"
 
     visible: !Services.WallpaperState.hasWallpaper
 

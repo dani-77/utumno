@@ -198,7 +198,7 @@ PanelWindow {
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-    WlrLayershell.namespace:     "helium-d77-wallpaper"
+    WlrLayershell.namespace:     "utumno-wallpaper"
 
     Rectangle {
         anchors.fill: parent

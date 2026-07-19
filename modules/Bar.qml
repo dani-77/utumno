@@ -25,7 +25,7 @@ PanelWindow {
     color: "transparent"
 
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "helium-d77-bar"
+    WlrLayershell.namespace: "utumno-bar"
     exclusiveZone: implicitHeight + Cfg.Colors.gap
 
     Rectangle {

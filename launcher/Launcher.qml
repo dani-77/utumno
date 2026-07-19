@@ -129,7 +129,7 @@ PanelWindow {
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-    WlrLayershell.namespace:     "helium-d77-launcher"
+    WlrLayershell.namespace:     "utumno-launcher"
 
     Process { id: launchProc; running: false }
 
