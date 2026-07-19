@@ -135,7 +135,7 @@ utumno/
 ├── backdrop/
 │   ├── Backdrop.qml
 │   ├── WallpaperBackground.qml
-│   └── assets/utumno-logo.svg
+│   └── assets/d77-logo.svg
 ├── launcher/
 │   ├── Launcher.qml
 │   ├── AppLoader.qml
