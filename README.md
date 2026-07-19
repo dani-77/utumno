@@ -1,11 +1,19 @@
 # Utumno
 
-A minimal QML/Quickshell desktop shell for [niri](https://github.com/YaLTeR/niri), in the
-same spirit as [`fabric-d77`](https://github.com/dani-77/fabric-d77) and
+A minimal QML/Quickshell desktop shell for Wayland compositors, in the same spirit as
+[`fabric-d77`](https://github.com/dani-77/fabric-d77) and
 [`quickshell-d77`](https://github.com/dani-77/quickshell-d77) — Tokyo Night theme,
 lean tooling, terminal-first workflow. Deliberately lighter than `quickshell-d77`: it ports
 the bar, launcher, wallpaper picker, lockscreen, session menu and OSD, but leaves out the
 dashboard, music picker and greeter, which quickshell-d77 still owns.
+
+Built primarily for [niri](https://github.com/YaLTeR/niri), and works just as well on
+[Hyprland](https://hyprland.org/) — `shell.qml` auto-detects the running compositor
+(`HYPRLAND_INSTANCE_SIGNATURE`/`SWAYSOCK`/`NIRI_SOCKET`) and switches the workspaces widget
+and session-menu logout accordingly. Sway is wired up the same way and should work too, and
+anything else exposing `ext-workspace-v1` (mangowc, etc.) falls back to the generic
+workspaces widget — but **only niri and Hyprland have actually been tested**; treat Sway and
+other compositors as untested/best-effort.
 
 ## Current state
 
@@ -21,11 +29,12 @@ Floating top bar (`modules/Bar.qml`, rounded corners, gap from screen edges) wit
     logout) — the plain dispatch call is silently rejected by Hyprland's Lua layer.
     **Verified working** against a real Hyprland instance.
   - `WorkspacesSway.qml` — fixed 1-9 grid via `Quickshell.I3` (Sway implements the i3 IPC
-    protocol). **Verified working.**
+    protocol). Untested — not verified against a real Sway instance.
   - `Workspaces.qml` — the compositor-agnostic `Quickshell.WindowManager`
     (`ext-workspace-v1`) widget, used for niri and anything else (mangowc included). Shows
     only the workspaces that actually exist (niri creates them dynamically), not a fixed
-    1-9 grid. **Verified working** on niri.
+    1-9 grid. **Verified working** on niri; other `ext-workspace-v1` compositors are
+    untested.
 - `Clock.qml`
 - `Weather.qml` — wttr.in condition icon + temperature (`?format=%c+%t`), polled every
   15 min, shown left of the clock (ported from quickshell-d77's Dashboard, minus the
@@ -53,12 +62,13 @@ instead of an inline `g` singleton:
 - **`launcher/`** — native Rofi-style application launcher (`.desktop` scanning, fuzzy
   filter, keyboard nav)
 - **`wallpaper/`** — grid wallpaper picker, applies via `wallpaper/set-wallpaper.sh`
-  (compositor-agnostic: tries `swww`/`swaybg`/`feh` on niri, since niri has no native
-  wallpaper protocol)
+  (compositor-agnostic: tries `swww`/`swaybg`/`feh`, since neither niri nor Hyprland ship a
+  native wallpaper protocol)
 - **`lockscreen/`** — real `WlSessionLock`, password validated via PAM
   (`Quickshell.Services.Pam`)
 - **`session/`** — suspend/reboot/poweroff/logout menu, via `loginctl`/`systemctl`, with a
-  native `niri msg action quit` logout (avoids a known niri issue where
+  per-compositor logout (`hyprctl dispatch hl.dsp.exit()` on Hyprland, `swaymsg exit` on
+  Sway, `niri msg action quit` on niri — the niri path also avoids a known niri issue where
   `loginctl terminate-session` leaves `niri.service` stuck active — see
   [niri-wm/niri#2729](https://github.com/niri-wm/niri/discussions/2729))
 - **`osd/`** — top-right overlay for volume (ALSA/`amixer`) and brightness
@@ -98,11 +108,21 @@ Add to your niri `config.kdl`:
 spawn-at-startup "qs" "-c" "utumno"
 ```
 
+Or, on Hyprland, add to your `hyprland.conf`:
+
+```
+exec-once = qs -c utumno
+```
+
 If you use the wallpaper picker, restore the last wallpaper at login too (niri has no
 preload step like Hyprland's hyprpaper, so this just re-applies it after startup):
 
 ```kdl
 spawn-at-startup "sh" "-c" "~/.config/quickshell/utumno/wallpaper/set-wallpaper.sh startup"
+```
+
+```
+exec-once = sh -c "~/.config/quickshell/utumno/wallpaper/set-wallpaper.sh startup"
 ```
 
 To test without installing into `~/.config/quickshell/` first:
@@ -208,6 +228,21 @@ binds {
     XF86MonBrightnessUp   { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "brightnessUp"; }
     XF86MonBrightnessDown { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "brightnessDown"; }
 }
+```
+
+### Equivalent Hyprland keybinds (`hyprland.conf`)
+
+```
+bind = SUPER, D, exec, qs -c utumno ipc call launcher toggle
+bind = SUPER SHIFT, E, exec, qs -c utumno ipc call session toggle
+bind = SUPER, L, exec, qs -c utumno ipc call lockscreen lock
+bind = SUPER, Y, exec, qs -c utumno ipc call wallpaper toggle
+
+bindel = , XF86AudioRaiseVolume, exec, qs -c utumno ipc call osd volumeUp
+bindel = , XF86AudioLowerVolume, exec, qs -c utumno ipc call osd volumeDown
+bindl  = , XF86AudioMute, exec, qs -c utumno ipc call osd volumeMuteToggle
+bindel = , XF86MonBrightnessUp, exec, qs -c utumno ipc call osd brightnessUp
+bindel = , XF86MonBrightnessDown, exec, qs -c utumno ipc call osd brightnessDown
 ```
 
 ## Roadmap
