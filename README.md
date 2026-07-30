@@ -62,15 +62,16 @@ instead of an inline `g` singleton:
   no wallpaper is set (`Services/WallpaperState.qml`)
 - **`launcher/`** — native Rofi-style application launcher (`.desktop` scanning, fuzzy
   filter, keyboard nav)
-- **`wallpaper/`** — grid wallpaper picker, applies via `wallpaper/set-wallpaper.sh`
-  (compositor-agnostic: tries `swww`/`swaybg`/`feh`, since neither niri nor Hyprland ship a
-  native wallpaper protocol)
+- **`wallpaper/`** — grid wallpaper picker, applies via `wallpaper/set-wallpaper.sh`, which
+  branches per compositor: `hyprctl hyprpaper` on Hyprland, `swaymsg output ... bg` on Sway,
+  and — since niri has no native wallpaper protocol — a `swww`/`swaybg`/`feh` fallback chain for
+  niri and anything else
 - **`lockscreen/`** — real `WlSessionLock`, password validated via PAM
   (`Quickshell.Services.Pam`)
 - **`session/`** — suspend/reboot/poweroff/logout menu, via `loginctl`/`systemctl`, with a
   per-compositor logout (`hyprctl dispatch hl.dsp.exit()` on Hyprland, `swaymsg exit` on
-  Sway, `niri msg action quit` on niri — the niri path also avoids a known niri issue where
-  `loginctl terminate-session` leaves `niri.service` stuck active — see
+  Sway, `niri msg action quit --skip-confirmation` on niri — the niri path also avoids a
+  known niri issue where `loginctl terminate-session` leaves `niri.service` stuck active — see
   [niri-wm/niri#2729](https://github.com/niri-wm/niri/discussions/2729))
 - **`osd/`** — top-right overlay for volume (ALSA/`amixer`) and brightness
   (`brightnessctl`), plus a power-profile cycler (`powerprofilesctl`)
@@ -107,6 +108,14 @@ Optional, depending on which ported modules you use:
 
 ```sh
 git clone https://github.com/dani-77/utumno ~/.config/quickshell/utumno
+```
+
+Or, system-wide via the included `Makefile` (installs to `/usr/share/quickshell/utumno`,
+picked up by `qs -c utumno` same as the `~/.config` path):
+
+```sh
+sudo make install
+# sudo make uninstall  to remove
 ```
 
 Add to your niri `config.kdl`:
