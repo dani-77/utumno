@@ -58,6 +58,13 @@ PanelWindow {
     property var    availableModels: [fallbackModel]
     property string infoText:       ""   // empty = shows nothing
     property bool   modelMenuOpen:  false
+    // True right before a models refresh that should (re)pick `model` from
+    // savedModel/fallback/first — the very first load, and right after a
+    // successful install (see pullProc.onExited). Left false the rest of
+    // the time, so the plain 15s refresh tick only updates availableModels
+    // and never silently reverts a manual dropdown pick back to
+    // savedModel a few seconds after making it.
+    property bool   _selectPending: true
 
     // Shell-quotes a string for safe interpolation inside a single-quoted
     // sh argument. Model names can come from user-typed input
@@ -453,15 +460,18 @@ PanelWindow {
                     chat.modelsLoaded    = true
                     chat.availableModels = names
 
-                    var chosen
-                    if (names.indexOf(chat.savedModel) !== -1) {
-                        chosen = chat.savedModel
-                    } else if (names.indexOf(chat.fallbackModel) !== -1) {
-                        chosen = chat.fallbackModel
-                    } else {
-                        chosen = names[0]
+                    if (chat._selectPending) {
+                        var chosen
+                        if (names.indexOf(chat.savedModel) !== -1) {
+                            chosen = chat.savedModel
+                        } else if (names.indexOf(chat.fallbackModel) !== -1) {
+                            chosen = chat.fallbackModel
+                        } else {
+                            chosen = names[0]
+                        }
+                        chat.model = chosen
+                        chat._selectPending = false
                     }
-                    chat.model = chosen
                 } catch (e) {
                     modelsRetryTimer.start()
                 }
@@ -502,6 +512,7 @@ PanelWindow {
             if (exitCode === 0) {
                 chat.infoText   = "'" + pullProc.modelName + "' instalado com sucesso."
                 chat.savedModel = pullProc.modelName
+                chat._selectPending = true
                 infoClearTimer.start()
                 modelsProc.running = true
             } else {
