@@ -4,8 +4,8 @@ A minimal QML/Quickshell desktop shell for Wayland compositors, in the same spir
 [`fabric-d77`](https://github.com/dani-77/fabric-d77) and
 [`quickshell-d77`](https://github.com/dani-77/quickshell-d77) — Tokyo Night theme,
 lean tooling, terminal-first workflow. Deliberately lighter than `quickshell-d77`: it ports
-the bar, launcher, wallpaper picker, lockscreen, session menu and OSD, but leaves out the
-dashboard, music picker and greeter, which quickshell-d77 still owns.
+the bar, launcher, wallpaper picker, lockscreen, session menu, OSD and Ollama chat popup,
+but leaves out the dashboard, music picker and greeter, which quickshell-d77 still owns.
 
 Built primarily for [niri](https://github.com/YaLTeR/niri), and works just as well on
 [Hyprland](https://hyprland.org/) — `shell.qml` auto-detects the running compositor
@@ -48,7 +48,8 @@ Floating top bar (`modules/Bar.qml`, rounded corners, gap from screen edges) wit
 - `Battery.qml` — state-dependent Nerd Font icon (charging/level) + % via
   `UPower.displayDevice`; click cycles the power profile
   (`osd.cyclePowerProfile()`/`powerprofilesctl`), same as quickshell-d77's bar
-- Launcher button (left) and session button (right, ⏻), both ported from quickshell-d77
+- Launcher button (left), Ollama chat button (left, "AI"), and session button (right, ⏻),
+  all ported from quickshell-d77
 
 The launcher and `nmtui-float` share one auto-detected terminal (`Launcher.qml`'s
 `_termCandidates`: alacritty > kitty > foot > wezterm > xterm) — nothing hardcoded, matching
@@ -73,6 +74,12 @@ instead of an inline `g` singleton:
   [niri-wm/niri#2729](https://github.com/niri-wm/niri/discussions/2729))
 - **`osd/`** — top-right overlay for volume (ALSA/`amixer`) and brightness
   (`brightnessctl`), plus a power-profile cycler (`powerprofilesctl`)
+- **`ollamachat/`** — native chat popup for a locally running [Ollama](https://ollama.com)
+  daemon (`http://127.0.0.1:11434`), talked to via `curl`. Streams the model's response as
+  it arrives, lets you switch between installed models or pull a new one straight from the
+  popup (with live download progress), and remembers the last picked model at
+  `~/.config/ollama-chat/model.conf` (shared with quickshell-d77, since it's the same file).
+  Opened from the bar's green "AI" button or via IPC.
 
 Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
 music picker, and the greetd login greeter — the last one especially, since it would mean
@@ -171,8 +178,10 @@ utumno/
 │   └── pam/password.conf
 ├── osd/
 │   └── Osd.qml
-└── session/
-    └── SessionMenu.qml     # suspend/reboot/poweroff/logout + error banner
+├── session/
+│   └── SessionMenu.qml     # suspend/reboot/poweroff/logout + error banner
+└── ollamachat/
+    └── OllamaChat.qml      # chat popup for a local Ollama daemon
 ```
 
 ## IPC
@@ -209,6 +218,10 @@ qs -c utumno ipc call osd brightnessUp
 qs -c utumno ipc call osd brightnessDown
 qs -c utumno ipc call osd showVolume
 qs -c utumno ipc call osd showBrightness
+
+qs -c utumno ipc call ollamachat toggle
+qs -c utumno ipc call ollamachat open
+qs -c utumno ipc call ollamachat close
 
 qs -c utumno ipc show     # list every target/function exposed
 ```
