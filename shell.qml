@@ -8,6 +8,7 @@ import "launcher"
 import "lockscreen"
 import "session"
 import "wallpaper"
+import "ollamachat"
 
 ShellRoot {
     id: root
@@ -50,6 +51,7 @@ ShellRoot {
         appLauncher: appLauncher
         sessionMenu: sessionMenu
         osd: osd
+        ollamaChat: ollamaChat
         compositor: root.compositor
     }
 
@@ -76,6 +78,15 @@ ShellRoot {
         id: osd
         step:    5
         timeout: 2500
+    }
+
+    // ══════════════════════════════════════════════════════
+    // OLLAMA CHAT
+    // ══════════════════════════════════════════════════════
+    // Native chat popup for a locally running Ollama daemon
+    // (http://127.0.0.1:11434). Ported from quickshell-d77.
+    OllamaChat {
+        id: ollamaChat
     }
 
     IpcHandler {
@@ -112,6 +123,14 @@ ShellRoot {
         function set(path: string): void { wallpaperPicker.apply(path) }
         function random(): void { wallpaperPicker.applyRandom() }
         function clear(): void { wallpaperPicker.clear() }
+    }
+
+    IpcHandler {
+        target: "ollamachat"
+
+        function toggle(): void { ollamaChat.toggle() }
+        function open(): void { ollamaChat.open() }
+        function close(): void { ollamaChat.close() }
     }
 
     IpcHandler {
