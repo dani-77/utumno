@@ -58,6 +58,12 @@ PanelWindow {
     property var    availableModels: [fallbackModel]
     property string infoText:       ""   // empty = shows nothing
     property bool   modelMenuOpen:  false
+    // Hardware auto-detection (GPU/RAM) — used to suggest a model-size
+    // tier appropriate for this machine. Detected once at startup since
+    // hardware doesn't change while the shell is running.
+    property string hwSummary:      ""   // e.g. "GPU NVIDIA RTX 3080 (12 GB VRAM)"
+    property string suggestedLabel: ""   // e.g. "7b – 8b"
+    property var    suggestedSizes: []   // e.g. [7, 8] — numeric B-param sizes
     // True right before a models refresh that should (re)pick `model` from
     // savedModel/fallback/first — the very first load, and right after a
     // successful install (see pullProc.onExited). Left false the rest of
@@ -72,6 +78,58 @@ PanelWindow {
     // injection when a name contains a quote or shell metacharacters.
     function _shq(s) {
         return "'" + String(s).replace(/'/g, "'\\''") + "'"
+    }
+
+    // Picks a suggested B-param range from detected VRAM/RAM. Integrated
+    // graphics (or no GPU at all) run inference on the CPU sharing system
+    // RAM, so it gets a more conservative ladder than a dedicated GPU with
+    // the same amount of memory.
+    function _suggestSizes(hw) {
+        var gb = (hw.vram_mb || hw.ram_mb || 0) / 1024
+        var dedicated = hw.gpu === "nvidia" || hw.gpu === "amd" || hw.gpu === "dedicated"
+        if (!dedicated) {
+            if (gb <= 4)  return [0.5, 1]
+            if (gb <= 8)  return [1, 3]
+            if (gb <= 16) return [3, 7]
+            return [7, 8]
+        }
+        if (gb <= 4)  return [1, 3]
+        if (gb <= 6)  return [3, 7]
+        if (gb <= 8)  return [7]
+        if (gb <= 12) return [7, 8]
+        if (gb <= 16) return [13, 14]
+        if (gb <= 24) return [14, 32]
+        if (gb <= 48) return [32]
+        return [70]
+    }
+
+    // Applies a parsed hwDetectProc result to hwSummary/suggestedLabel/sizes.
+    function applyHwInfo(hw) {
+        var gb = (hw.vram_mb || hw.ram_mb || 0) / 1024
+        if (hw.gpu === "nvidia" || hw.gpu === "amd") {
+            hwSummary = "GPU " + (hw.gpu === "nvidia" ? "NVIDIA" : "AMD") + " " + hw.name +
+                        " (" + Math.round(gb) + " GB VRAM)"
+        } else if (hw.gpu === "dedicated") {
+            hwSummary = "GPU dedicada: " + hw.name
+        } else {
+            hwSummary = "Sem GPU dedicada detetada — " + Math.round(gb) + " GB RAM"
+        }
+        suggestedSizes = _suggestSizes(hw)
+        suggestedLabel = suggestedSizes.map(s => (s % 1 === 0 ? s : s.toFixed(1)) + "b").join(" – ")
+    }
+
+    // True when a model's tag names a param size close to what was
+    // suggested for this machine (within ±35%), so the picker can flag it.
+    function isRecommended(name) {
+        if (suggestedSizes.length === 0) return false
+        var m = /(\d+(?:\.\d+)?)\s*b(?!\w)/i.exec(name)
+        if (!m) return false
+        var size = parseFloat(m[1])
+        for (var i = 0; i < suggestedSizes.length; i++) {
+            var target = suggestedSizes[i]
+            if (Math.abs(size - target) <= target * 0.35) return true
+        }
+        return false
     }
 
     // ── Public API ───────────────────────────────────────
@@ -93,7 +151,10 @@ PanelWindow {
         else         open()
     }
 
-    Component.onCompleted: loadModelProc.running = true
+    Component.onCompleted: {
+        loadModelProc.running = true
+        hwDetectProc.running  = true
+    }
 
     // ══════════════════════════════════════════════════════
     // LAYER SHELL WINDOW
@@ -198,6 +259,18 @@ PanelWindow {
                 }
             }
 
+            // ── Hardware / suggested model size ───────────
+            Text {
+                Layout.fillWidth: true
+                visible: chat.hwSummary.length > 0
+                text: chat.hwSummary +
+                      (chat.suggestedLabel.length > 0 ? "  ·  modelos sugeridos: " + chat.suggestedLabel : "")
+                elide: Text.ElideRight
+                font.family: chat.font
+                font.pixelSize: chat.fsize - 2
+                color: chat.colMuted
+            }
+
             // ── Model dropdown list ───────────────────────
             Rectangle {
                 id: modelMenu
@@ -231,7 +304,7 @@ PanelWindow {
                             anchors.leftMargin: 8
                             verticalAlignment: Text.AlignVCenter
                             elide: Text.ElideRight
-                            text: modelData
+                            text: (modelData !== chat.installSentinel && chat.isRecommended(modelData) ? "★ " : "") + modelData
                             font.family: chat.font
                             font.pixelSize: chat.fsize - 1
                             color: modelData === chat.installSentinel ? chat.colCyan : chat.colFg
@@ -307,7 +380,11 @@ PanelWindow {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: installInput.text === ""
-                        text: "nome-do-modelo:tag (ex: llama3.2:3b)"
+                        text: chat.suggestedLabel.length > 0
+                              ? "nome-do-modelo:tag (sugestão para esta máquina: " + chat.suggestedLabel + ")"
+                              : "nome-do-modelo:tag (ex: llama3.2:3b)"
+                        elide: Text.ElideRight
+                        width: parent.width
                         font: installInput.font
                         color: chat.colMuted
                     }
@@ -426,6 +503,53 @@ PanelWindow {
     }
 
     Process { id: saveModelProc }
+
+    // --- Deteção de hardware (GPU dedicada / RAM) ---
+    // Runs once at startup: prefers nvidia-smi (exact VRAM), falls back to
+    // rocm-smi for AMD, then lspci just to notice a dedicated GPU exists
+    // (no VRAM figure available that way), and finally total system RAM
+    // when there's no dedicated GPU at all (CPU inference shares it).
+    Process {
+        id: hwDetectProc
+        property string buffer: ""
+        command: ["sh", "-c", `
+            if command -v nvidia-smi >/dev/null 2>&1; then
+                info=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits 2>/dev/null | head -1)
+                if [ -n "$info" ]; then
+                    name=$(printf '%s' "$info" | cut -d',' -f1 | sed 's/^ *//;s/ *$//;s/["\\\\]/ /g')
+                    vram=$(printf '%s' "$info" | cut -d',' -f2 | tr -dc '0-9')
+                    printf '{"gpu":"nvidia","name":"%s","vram_mb":%s}' "$name" "$vram"
+                    exit 0
+                fi
+            fi
+            if command -v rocm-smi >/dev/null 2>&1; then
+                vram_b=$(rocm-smi --showmeminfo vram --csv 2>/dev/null | tail -1 | cut -d',' -f2 | tr -dc '0-9')
+                if [ -n "$vram_b" ]; then
+                    printf '{"gpu":"amd","name":"AMD GPU","vram_mb":%s}' "$((vram_b/1024/1024))"
+                    exit 0
+                fi
+            fi
+            if command -v lspci >/dev/null 2>&1; then
+                gpu_line=$(lspci | grep -Ei 'vga compatible|3d controller' | grep -Ei 'nvidia|amd|radeon|geforce|rtx|quadro|arc a[0-9]' | head -1)
+                if [ -n "$gpu_line" ]; then
+                    name=$(printf '%s' "$gpu_line" | sed 's/^[^:]*: //;s/["\\\\]/ /g')
+                    printf '{"gpu":"dedicated","name":"%s"}' "$name"
+                    exit 0
+                fi
+            fi
+            ram_mb=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
+            printf '{"gpu":"none","ram_mb":%s}' "$ram_mb"
+        `]
+        stdout: SplitParser {
+            onRead: (line) => { hwDetectProc.buffer += line }
+        }
+        onExited: () => {
+            try {
+                chat.applyHwInfo(JSON.parse(hwDetectProc.buffer))
+            } catch (e) {}
+            hwDetectProc.buffer = ""
+        }
+    }
 
     // --- Lista de modelos instalados ---
     Timer {

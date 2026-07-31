@@ -80,7 +80,11 @@ instead of an inline `g` singleton:
   it arrives, lets you switch between installed models or pull a new one straight from the
   popup (with live download progress), and remembers the last picked model at
   `~/.config/ollama-chat/model.conf` (shared with quickshell-d77, since it's the same file).
-  Opened from the bar's green "AI" button or via IPC.
+  Opened from the bar's green "AI" button or via IPC. On startup it also runs a one-off
+  hardware check (`nvidia-smi` for NVIDIA VRAM, `rocm-smi`/`lspci` for AMD or other dedicated
+  GPUs, falling back to total system RAM when there's no dedicated GPU) and shows a suggested
+  model-size range for the machine; installed models matching that range get a `★` in the
+  picker.
 
 Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
 music picker, and the greetd login greeter — the last one especially, since it would mean
