@@ -84,7 +84,12 @@ instead of an inline `g` singleton:
   hardware check (`nvidia-smi` for NVIDIA VRAM, `rocm-smi`/`lspci` for AMD or other dedicated
   GPUs, falling back to total system RAM when there's no dedicated GPU) and shows a suggested
   model-size range for the machine; installed models matching that range get a `★` in the
-  picker.
+  picker. The status dot checks Ollama with a bounded `curl` against the API root rather than
+  `sv status ollama` (a plain user always gets "access denied" on this runit install's
+  `0700 root:root` supervise dirs, so the dot would read down forever otherwise), and the
+  generate request is guarded with `--speed-limit 1 --speed-time 30` rather than a flat
+  `--max-time`, so a slower model like `qwen2.5:3b` isn't killed mid-stream just for taking
+  longer than 30s total to respond.
 
 Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
 music picker, and the greetd login greeter — the last one especially, since it would mean
