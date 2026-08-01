@@ -662,19 +662,28 @@ PanelWindow {
         onTriggered: statusProc.running = true
     }
 
+    // "sv status ollama" would need root — runit's supervise dirs are
+    // 0700 root:root on this system (true for every service, not just
+    // ollama), so a plain user always gets "access denied" and the
+    // indicator would read down forever. Hitting the API directly both
+    // sidesteps that and is the more meaningful check anyway: it confirms
+    // ollama is actually serving requests, not just that a process exists.
     Process {
         id: statusProc
-        command: ["sv", "status", "ollama"]
+        command: ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "2",
+            "http://127.0.0.1:11434/"]
+        property string buffer: ""
         stdout: SplitParser {
-            onRead: (line) => {
-                var wasDown = !chat.ollamaUp
-                chat.ollamaUp = line.trim().startsWith("run:")
-                if (wasDown && chat.ollamaUp && !chat.modelsLoaded) {
-                    modelsProc.running = true
-                }
-            }
+            onRead: (line) => { statusProc.buffer += line }
         }
-        onExited: (exitCode) => { if (exitCode !== 0) chat.ollamaUp = false }
+        onExited: (exitCode) => {
+            var wasDown = !chat.ollamaUp
+            chat.ollamaUp = exitCode === 0 && statusProc.buffer.trim() === "200"
+            if (wasDown && chat.ollamaUp && !chat.modelsLoaded) {
+                modelsProc.running = true
+            }
+            statusProc.buffer = ""
+        }
     }
 
     Process {
@@ -701,7 +710,7 @@ PanelWindow {
         onExited: (exitCode, exitStatus) => {
             if (exitCode !== 0 || !proc.gotAnyOutput) {
                 if (proc.errorBuffer.includes("Connection refused") || exitCode === 7) {
-                    chat.history += "\n[Ollama não está a correr. Verifica com: sv status ollama]\n"
+                    chat.history += "\n[Ollama não está a correr. Verifica com: sudo sv status ollama]\n"
                 } else if (exitCode === 28) {
                     chat.history += "\n[Ollama demorou demasiado a responder — timeout]\n"
                 } else if (!proc.gotAnyOutput) {
