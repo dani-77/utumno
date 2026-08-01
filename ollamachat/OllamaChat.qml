@@ -467,7 +467,12 @@ PanelWindow {
                         chat.history += "\n> " + q + "\n"
                         proc.errorBuffer  = ""
                         proc.gotAnyOutput = false
-                        proc.command = ["curl", "-s", "-N", "--max-time", "30",
+                        // --speed-limit/--speed-time abort only on a genuine
+                        // 30s stall (no bytes at all), unlike a flat
+                        // --max-time which would also kill a slower model
+                        // (e.g. qwen2.5:3b) mid-stream just for taking
+                        // longer than 30s in total to finish generating.
+                        proc.command = ["curl", "-s", "-N", "--speed-limit", "1", "--speed-time", "30",
                             "http://127.0.0.1:11434/api/generate",
                             "-d", JSON.stringify({model: chat.model, prompt: q, stream: true})]
                         proc.running = true
