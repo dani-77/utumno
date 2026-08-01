@@ -4,7 +4,7 @@
 // (http://127.0.0.1:11434), talked to via curl (no HTTP/JS
 // client libraries needed). Streams the generated response
 // as it arrives, lets you switch between installed models
-// or pull a new one ("+ instalar novo modelo...") with live
+// or pull a new one ("+ install new model...") with live
 // progress, and remembers the last picked model at
 // ~/.config/ollama-chat/model.conf.
 // Ported from quickshell-d77.
@@ -43,7 +43,7 @@ PanelWindow {
     // CONFIG
     // ══════════════════════════════════════════════════════
     readonly property string fallbackModel:   "qwen2.5:0.5b"
-    readonly property string installSentinel: "+ instalar novo modelo..."
+    readonly property string installSentinel: "+ install new model..."
     property string configPath: Quickshell.env("HOME") + "/.config/ollama-chat/model.conf"
 
     // ══════════════════════════════════════════════════════
@@ -110,9 +110,9 @@ PanelWindow {
             hwSummary = "GPU " + (hw.gpu === "nvidia" ? "NVIDIA" : "AMD") + " " + hw.name +
                         " (" + Math.round(gb) + " GB VRAM)"
         } else if (hw.gpu === "dedicated") {
-            hwSummary = "GPU dedicada: " + hw.name
+            hwSummary = "Dedicated GPU: " + hw.name
         } else {
-            hwSummary = "Sem GPU dedicada detetada — " + Math.round(gb) + " GB RAM"
+            hwSummary = "No dedicated GPU detected — " + Math.round(gb) + " GB RAM"
         }
         suggestedSizes = _suggestSizes(hw)
         suggestedLabel = suggestedSizes.map(s => (s % 1 === 0 ? s : s.toFixed(1)) + "b").join(" – ")
@@ -264,7 +264,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 visible: chat.hwSummary.length > 0
                 text: chat.hwSummary +
-                      (chat.suggestedLabel.length > 0 ? "  ·  modelos sugeridos: " + chat.suggestedLabel : "")
+                      (chat.suggestedLabel.length > 0 ? "  ·  suggested models: " + chat.suggestedLabel : "")
                 elide: Text.ElideRight
                 font.family: chat.font
                 font.pixelSize: chat.fsize - 2
@@ -368,7 +368,7 @@ PanelWindow {
                         text = ""
                         if (name.length === 0) return
                         chat.installing = true
-                        chat.infoText   = "A instalar '" + name + "'..."
+                        chat.infoText   = "Installing '" + name + "'..."
                         pullProc.modelName = name
                         pullProc.buffer     = ""
                         pullProc.command = ["curl", "-s", "-N", "-X", "POST",
@@ -381,8 +381,8 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: installInput.text === ""
                         text: chat.suggestedLabel.length > 0
-                              ? "nome-do-modelo:tag (sugestão para esta máquina: " + chat.suggestedLabel + ")"
-                              : "nome-do-modelo:tag (ex: llama3.2:3b)"
+                              ? "model-name:tag (suggested for this machine: " + chat.suggestedLabel + ")"
+                              : "model-name:tag (e.g. llama3.2:3b)"
                         elide: Text.ElideRight
                         width: parent.width
                         font: installInput.font
@@ -477,7 +477,7 @@ PanelWindow {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: input.text === ""
-                        text: "Pergunta à IA..."
+                        text: "Ask the AI..."
                         font: input.font
                         color: chat.colMuted
                     }
@@ -490,7 +490,7 @@ PanelWindow {
     // PROCESSES
     // ══════════════════════════════════════════════════════
 
-    // --- Carrega o modelo guardado ---
+    // --- Load the saved model ---
     Process {
         id: loadModelProc
         command: ["sh", "-c", "cat " + chat._shq(chat.configPath) + " 2>/dev/null || true"]
@@ -504,7 +504,7 @@ PanelWindow {
 
     Process { id: saveModelProc }
 
-    // --- Deteção de hardware (GPU dedicada / RAM) ---
+    // --- Hardware detection (dedicated GPU / RAM) ---
     // Runs once at startup: prefers nvidia-smi (exact VRAM), falls back to
     // rocm-smi for AMD, then lspci just to notice a dedicated GPU exists
     // (no VRAM figure available that way), and finally total system RAM
@@ -551,7 +551,7 @@ PanelWindow {
         }
     }
 
-    // --- Lista de modelos instalados ---
+    // --- List of installed models ---
     Timer {
         id: modelsRetryTimer
         interval: 5000
@@ -606,7 +606,7 @@ PanelWindow {
         }
     }
 
-    // --- Instalação de novo modelo (com progresso) ---
+    // --- Installing a new model (with progress) ---
     Process {
         id: pullProc
         property string modelName: ""
@@ -634,13 +634,13 @@ PanelWindow {
         onExited: (exitCode) => {
             chat.installing = false
             if (exitCode === 0) {
-                chat.infoText   = "'" + pullProc.modelName + "' instalado com sucesso."
+                chat.infoText   = "'" + pullProc.modelName + "' installed successfully."
                 chat.savedModel = pullProc.modelName
                 chat._selectPending = true
                 infoClearTimer.start()
                 modelsProc.running = true
             } else {
-                chat.infoText = "Falha ao instalar '" + pullProc.modelName + "' (curl código " + exitCode + ")"
+                chat.infoText = "Failed to install '" + pullProc.modelName + "' (curl exit code " + exitCode + ")"
             }
         }
     }
@@ -653,7 +653,7 @@ PanelWindow {
         onTriggered: chat.infoText = ""
     }
 
-    // --- Status do serviço ---
+    // --- Service status ---
     Timer {
         interval: 5000
         running: true
@@ -697,7 +697,7 @@ PanelWindow {
                 try {
                     var chunk = JSON.parse(line)
                     if (chunk.error) {
-                        chat.history += "\n[erro do modelo: " + chunk.error + "]\n"
+                        chat.history += "\n[model error: " + chunk.error + "]\n"
                     } else {
                         chat.history += chunk.response || ""
                     }
@@ -710,11 +710,11 @@ PanelWindow {
         onExited: (exitCode, exitStatus) => {
             if (exitCode !== 0 || !proc.gotAnyOutput) {
                 if (proc.errorBuffer.includes("Connection refused") || exitCode === 7) {
-                    chat.history += "\n[Ollama não está a correr. Verifica com: sudo sv status ollama]\n"
+                    chat.history += "\n[Ollama is not running. Check with: sudo sv status ollama]\n"
                 } else if (exitCode === 28) {
-                    chat.history += "\n[Ollama demorou demasiado a responder — timeout]\n"
+                    chat.history += "\n[Ollama took too long to respond — timeout]\n"
                 } else if (!proc.gotAnyOutput) {
-                    chat.history += "\n[sem resposta do Ollama — código curl: " + exitCode + "]\n"
+                    chat.history += "\n[no response from Ollama — curl exit code: " + exitCode + "]\n"
                 }
             }
         }
