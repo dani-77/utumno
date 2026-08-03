@@ -92,7 +92,8 @@ instead of an inline `g` singleton:
   `0700 root:root` supervise dirs, so the dot would read down forever otherwise), and the
   generate request is guarded with `--speed-limit 1 --speed-time 30` rather than a flat
   `--max-time`, so a slower model like `qwen2.5:3b` isn't killed mid-stream just for taking
-  longer than 30s total to respond.
+  longer than 30s total to respond. The response area is a read-only `TextEdit`, so generated
+  text can be selected and copied out with the mouse or keyboard.
 
 Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
 music picker, and the greetd login greeter — the last one especially, since it would mean

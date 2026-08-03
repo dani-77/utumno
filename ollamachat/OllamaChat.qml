@@ -425,15 +425,23 @@ PanelWindow {
                     // Keeps the newest output in view as the model streams.
                     onContentHeightChanged: contentY = Math.max(0, contentHeight - height)
 
-                    Text {
+                    TextEdit {
                         id: historyText
                         width: historyFlick.width
-                        wrapMode: Text.WordWrap
-                        textFormat: Text.PlainText
+                        wrapMode: TextEdit.WordWrap
+                        textFormat: TextEdit.PlainText
                         text: chat.history
                         font.family: chat.font
                         font.pixelSize: chat.fsize
                         color: chat.colFg
+                        readOnly: true
+                        selectByMouse: true
+                        selectByKeyboard: true
+                        persistentSelection: true
+                        selectionColor: chat.colPurple
+                        cursorShape: Qt.IBeamCursor
+
+                        Keys.onEscapePressed: chat.hide()
                     }
                 }
             }
