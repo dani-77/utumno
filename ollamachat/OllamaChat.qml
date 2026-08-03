@@ -55,6 +55,10 @@ PanelWindow {
     property bool   ollamaUp:       false
     property bool   modelsLoaded:   false
     property bool   installing:     false
+    // Set once we've decided whether to auto-pull the fallback model on a
+    // fresh Ollama with nothing installed, so it's only ever offered once
+    // per popup lifetime — not retried on every 15s models poll.
+    property bool   _autoPullOffered: false
     property var    availableModels: [fallbackModel]
     property string infoText:       ""   // empty = shows nothing
     property bool   modelMenuOpen:  false
@@ -130,6 +134,31 @@ PanelWindow {
             if (Math.abs(size - target) <= target * 0.35) return true
         }
         return false
+    }
+
+    // Kicks off a pull of the fallback model without any user input — used
+    // when a fresh Ollama install has nothing to select. Shares pullProc
+    // with the manual "+ install new model..." flow, so progress reporting
+    // and cancellation behave identically either way.
+    function startAutoPull() {
+        installing = true
+        infoText   = "No models installed — auto-downloading '" + fallbackModel + "'. Click Cancel to stop."
+        pullProc.modelName = fallbackModel
+        pullProc.buffer     = ""
+        pullProc.cancelled  = false
+        pullProc.command = ["curl", "-s", "-N", "-X", "POST",
+            "http://127.0.0.1:11434/api/pull",
+            "-d", JSON.stringify({name: fallbackModel, stream: true})]
+        pullProc.running = true
+    }
+
+    // Stops whichever pull (automatic or manual) is currently running.
+    // Setting Process.running to false sends SIGTERM; pullProc.onExited
+    // checks the cancelled flag to report it distinctly from a failure.
+    function cancelInstall() {
+        if (!installing) return
+        pullProc.cancelled = true
+        pullProc.running   = false
     }
 
     // ── Public API ───────────────────────────────────────
@@ -392,15 +421,35 @@ PanelWindow {
             }
 
             // ── Info / progress banner ────────────────────
-            Text {
+            RowLayout {
                 Layout.fillWidth: true
                 visible: chat.infoText.length > 0
-                text: chat.infoText
-                wrapMode: Text.WordWrap
-                font.family: chat.font
-                font.italic: true
-                font.pixelSize: chat.fsize - 1
-                color: chat.colBlue
+                spacing: 8
+
+                Text {
+                    Layout.fillWidth: true
+                    text: chat.infoText
+                    wrapMode: Text.WordWrap
+                    font.family: chat.font
+                    font.italic: true
+                    font.pixelSize: chat.fsize - 1
+                    color: chat.colBlue
+                }
+
+                Text {
+                    visible: chat.installing
+                    text: "Cancel"
+                    font.family: chat.font
+                    font.underline: true
+                    font.pixelSize: chat.fsize - 1
+                    color: chat.colRed
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: chat.cancelInstall()
+                    }
+                }
             }
 
             // ── History ────────────────────────────────────
@@ -591,9 +640,9 @@ PanelWindow {
             if (chat.installing) { modelsProc.buffer = ""; return }
             if (exitCode === 0 && modelsProc.buffer.length > 0) {
                 try {
-                    var data  = JSON.parse(modelsProc.buffer)
-                    var names = (data.models || []).map(m => m.name)
-                    if (names.length === 0) names = [chat.fallbackModel]
+                    var data      = JSON.parse(modelsProc.buffer)
+                    var realNames = (data.models || []).map(m => m.name)
+                    var names     = realNames.length === 0 ? [chat.fallbackModel] : realNames
                     chat.modelsLoaded    = true
                     chat.availableModels = names
 
@@ -608,6 +657,14 @@ PanelWindow {
                         }
                         chat.model = chosen
                         chat._selectPending = false
+                    }
+
+                    // Fresh Ollama, nothing installed yet: auto-pull the
+                    // fallback model once so there's something to talk to
+                    // without the user having to know to type a model name.
+                    if (realNames.length === 0 && !chat._autoPullOffered) {
+                        chat._autoPullOffered = true
+                        chat.startAutoPull()
                     }
                 } catch (e) {
                     modelsRetryTimer.start()
@@ -624,21 +681,24 @@ PanelWindow {
         id: pullProc
         property string modelName: ""
         property string buffer: ""
+        // Set right before running is dropped to false from cancelInstall(),
+        // so onExited can tell a user-requested stop from a real failure.
+        property bool   cancelled: false
 
         stdout: SplitParser {
             onRead: (line) => {
                 try {
                     var chunk = JSON.parse(line)
                     if (chunk.error) {
-                        chat.infoText = "Erro a instalar '" + pullProc.modelName + "': " + chunk.error
+                        chat.infoText = "Error installing '" + pullProc.modelName + "': " + chunk.error
                         return
                     }
                     var status = chunk.status || ""
                     if (chunk.total && chunk.completed) {
                         var pct = Math.round((chunk.completed / chunk.total) * 100)
-                        chat.infoText = "A instalar '" + pullProc.modelName + "': " + status + " (" + pct + "%)"
+                        chat.infoText = "Installing '" + pullProc.modelName + "': " + status + " (" + pct + "%)"
                     } else {
-                        chat.infoText = "A instalar '" + pullProc.modelName + "': " + status
+                        chat.infoText = "Installing '" + pullProc.modelName + "': " + status
                     }
                 } catch (e) {}
             }
@@ -646,7 +706,11 @@ PanelWindow {
 
         onExited: (exitCode) => {
             chat.installing = false
-            if (exitCode === 0) {
+            if (pullProc.cancelled) {
+                chat.infoText     = "Cancelled installing '" + pullProc.modelName + "'."
+                pullProc.cancelled = false
+                infoClearTimer.start()
+            } else if (exitCode === 0) {
                 chat.infoText   = "'" + pullProc.modelName + "' installed successfully."
                 chat.savedModel = pullProc.modelName
                 chat._selectPending = true

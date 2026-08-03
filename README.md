@@ -93,7 +93,12 @@ instead of an inline `g` singleton:
   generate request is guarded with `--speed-limit 1 --speed-time 30` rather than a flat
   `--max-time`, so a slower model like `qwen2.5:3b` isn't killed mid-stream just for taking
   longer than 30s total to respond. The response area is a read-only `TextEdit`, so generated
-  text can be selected and copied out with the mouse or keyboard.
+  text can be selected and copied out with the mouse or keyboard. If it finds Ollama running
+  with no models installed at all (a fresh setup), it auto-pulls the tiny fallback model
+  (`qwen2.5:0.5b`) once, so there's something to talk to right away — the pull attempt itself
+  doubles as the reachability check, so a missing daemon or network just surfaces as a failed
+  download like any manual install would. A **Cancel** link next to the progress banner stops
+  it (or any manual install) at any point.
 
 Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
 music picker, and the greetd login greeter — the last one especially, since it would mean
