@@ -63,9 +63,12 @@ instead of an inline `g` singleton:
 - **`launcher/`** — native Rofi-style application launcher (`.desktop` scanning, fuzzy
   filter, keyboard nav)
 - **`wallpaper/`** — grid wallpaper picker, applies via `wallpaper/set-wallpaper.sh`, which
-  branches per compositor: `hyprctl hyprpaper` on Hyprland, `swaymsg output ... bg` on Sway,
-  and — since niri has no native wallpaper protocol — a `swww`/`swaybg`/`feh` fallback chain for
-  niri and anything else
+  branches per compositor: on Hyprland it detects whichever wallpaper daemon is actually
+  running (`hyprpaper`, `swww`, or `swaybg`) and drives that one — Hyprland itself doesn't
+  draw wallpapers, so assuming hyprpaper would silently no-op on a swww/swaybg setup;
+  `swaymsg output ... bg` on Sway; and — since niri has no native wallpaper protocol — the
+  same `swww`/`swaybg`/`feh` fallback chain for niri and anything else. If swww is picked
+  but `swww-daemon` isn't running yet, the script starts it itself.
 - **`lockscreen/`** — real `WlSessionLock`, password validated via PAM
   (`Quickshell.Services.Pam`)
 - **`session/`** — suspend/reboot/poweroff/logout menu, via `loginctl`/`systemctl`, with a
@@ -107,7 +110,8 @@ sudo xbps-install quickshell niri qt6-base qt6-declarative qt6-svg \
 
 Optional, depending on which ported modules you use:
 
-- **Wallpaper picker**: one of `swww` (needs `swww-daemon` running), `swaybg`, or `feh`
+- **Wallpaper picker**: one of `swww` (the script starts `swww-daemon` itself if it isn't
+  already running), `swaybg`, or `feh`
 - **Lockscreen**: PAM (`linux-pam`, already part of Void's base system) — no extra package
 - **Session menu**: `elogind` (Void's non-systemd `loginctl`/`systemctl` provider — usually
   already pulled in by your desktop meta-package)
