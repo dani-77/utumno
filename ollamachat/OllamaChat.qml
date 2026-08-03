@@ -488,7 +488,6 @@ PanelWindow {
                         selectByKeyboard: true
                         persistentSelection: true
                         selectionColor: chat.colPurple
-                        cursorShape: Qt.IBeamCursor
 
                         Keys.onEscapePressed: chat.hide()
                     }
