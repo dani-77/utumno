@@ -44,6 +44,11 @@ PanelWindow {
     // ══════════════════════════════════════════════════════
     readonly property string fallbackModel:   "qwen2.5:0.5b"
     readonly property string installSentinel: "+ install new model..."
+    // Without this, /api/generate falls back to Ollama's server-side
+    // default (5 min), which keeps the model resident and consuming
+    // RAM/CPU long after you've stopped chatting. "0" unloads it the
+    // instant a response finishes, so it's only ever loaded on demand.
+    readonly property string keepAlive:       "0"
     property string configPath: Quickshell.env("HOME") + "/.config/ollama-chat/model.conf"
 
     // ══════════════════════════════════════════════════════
@@ -159,6 +164,13 @@ PanelWindow {
         if (!installing) return
         pullProc.cancelled = true
         pullProc.running   = false
+    }
+
+    // Stops a response mid-stream, same SIGTERM approach as cancelInstall.
+    function stopGeneration() {
+        if (!proc.running) return
+        proc.cancelled = true
+        proc.running   = false
     }
 
     // ── Public API ───────────────────────────────────────
@@ -495,52 +507,88 @@ PanelWindow {
             }
 
             // ── Prompt field ───────────────────────────────
-            Rectangle {
+            RowLayout {
                 Layout.fillWidth: true
-                height: 40
-                radius: 8
-                color: Qt.darker(chat.colBg, 1.3)
-                border.width: 1
-                border.color: input.activeFocus ? chat.colPurple : chat.colMuted
+                spacing: 8
 
-                TextInput {
-                    id: input
-                    anchors.fill: parent
-                    anchors.leftMargin:  12
-                    anchors.rightMargin: 12
-                    verticalAlignment: TextInput.AlignVCenter
-                    clip: true
-                    color: chat.colFg
-                    font.family: chat.font
-                    font.pixelSize: chat.fsize + 1
-                    selectionColor: chat.colPurple
-                    selectByMouse: true
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 40
+                    radius: 8
+                    color: Qt.darker(chat.colBg, 1.3)
+                    border.width: 1
+                    border.color: input.activeFocus ? chat.colPurple : chat.colMuted
 
-                    Keys.onEscapePressed: chat.hide()
-                    onAccepted: {
-                        var q = text.trim()
-                        if (q.length === 0) return
-                        chat.history += "\n> " + q + "\n"
-                        proc.errorBuffer  = ""
-                        proc.gotAnyOutput = false
-                        // --speed-limit/--speed-time abort only on a genuine
-                        // 30s stall (no bytes at all), unlike a flat
-                        // --max-time which would also kill a slower model
-                        // (e.g. qwen2.5:3b) mid-stream just for taking
-                        // longer than 30s in total to finish generating.
-                        proc.command = ["curl", "-s", "-N", "--speed-limit", "1", "--speed-time", "30",
-                            "http://127.0.0.1:11434/api/generate",
-                            "-d", JSON.stringify({model: chat.model, prompt: q, stream: true})]
-                        proc.running = true
-                        text = ""
+                    TextInput {
+                        id: input
+                        anchors.fill: parent
+                        anchors.leftMargin:  12
+                        anchors.rightMargin: 12
+                        verticalAlignment: TextInput.AlignVCenter
+                        clip: true
+                        color: chat.colFg
+                        font.family: chat.font
+                        font.pixelSize: chat.fsize + 1
+                        selectionColor: chat.colPurple
+                        selectByMouse: true
+
+                        Keys.onEscapePressed: {
+                            if (proc.running) chat.stopGeneration()
+                            else              chat.hide()
+                        }
+                        onAccepted: {
+                            var q = text.trim()
+                            if (q.length === 0 || proc.running) return
+                            chat.history += "\n> " + q + "\n"
+                            proc.errorBuffer  = ""
+                            proc.gotAnyOutput = false
+                            proc.cancelled    = false
+                            // --speed-limit/--speed-time abort only on a genuine
+                            // 30s stall (no bytes at all), unlike a flat
+                            // --max-time which would also kill a slower model
+                            // (e.g. qwen2.5:3b) mid-stream just for taking
+                            // longer than 30s in total to finish generating.
+                            proc.command = ["curl", "-s", "-N", "--speed-limit", "1", "--speed-time", "30",
+                                "http://127.0.0.1:11434/api/generate",
+                                "-d", JSON.stringify({model: chat.model, prompt: q, stream: true, keep_alive: chat.keepAlive})]
+                            proc.running = true
+                            text = ""
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: input.text === ""
+                            text: proc.running ? "Generating... (Esc to stop)" : "Ask the AI..."
+                            font: input.font
+                            color: chat.colMuted
+                        }
                     }
+                }
+
+                // ── Stop button ─────────────────────────────
+                Rectangle {
+                    visible: proc.running
+                    implicitWidth: 64
+                    implicitHeight: 40
+                    radius: 8
+                    color: stopMa.containsMouse ? Qt.rgba(0.94, 0.33, 0.31, 0.25) : Qt.darker(chat.colBg, 1.3)
+                    border.width: 1
+                    border.color: chat.colRed
 
                     Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: input.text === ""
-                        text: "Ask the AI..."
-                        font: input.font
-                        color: chat.colMuted
+                        anchors.centerIn: parent
+                        text: "Stop"
+                        font.family: chat.font
+                        font.pixelSize: chat.fsize
+                        color: chat.colRed
+                    }
+
+                    MouseArea {
+                        id: stopMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: chat.stopGeneration()
                     }
                 }
             }
@@ -766,6 +814,10 @@ PanelWindow {
         id: proc
         property string errorBuffer:  ""
         property bool   gotAnyOutput: false
+        // Set right before running is dropped to false from stopGeneration(),
+        // so onExited can tell a user-requested stop from a real failure
+        // (curl's SIGTERM exit code otherwise reads as an error below).
+        property bool   cancelled:    false
 
         stdout: SplitParser {
             onRead: (line) => {
@@ -784,7 +836,10 @@ PanelWindow {
             onRead: (line) => { proc.errorBuffer += line + "\n" }
         }
         onExited: (exitCode, exitStatus) => {
-            if (exitCode !== 0 || !proc.gotAnyOutput) {
+            if (proc.cancelled) {
+                chat.history += "\n[stopped]\n"
+                proc.cancelled = false
+            } else if (exitCode !== 0 || !proc.gotAnyOutput) {
                 if (proc.errorBuffer.includes("Connection refused") || exitCode === 7) {
                     chat.history += "\n[Ollama is not running. Check with: sudo sv status ollama]\n"
                 } else if (exitCode === 28) {

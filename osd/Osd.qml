@@ -278,9 +278,15 @@ Scope {
         }
     }
 
+    // Runs forever in the background (OSD hidden or not) to catch
+    // external volume/brightness changes, e.g. media keys handled by
+    // another program — 700ms made this one of the shell's steadiest
+    // background forkers; nothing about "someone else changed it"
+    // detection needs sub-second latency, so 2s trades a bit of
+    // responsiveness for a lot fewer amixer/brightnessctl spawns.
     Timer {
         id: watchTimer
-        interval: 700
+        interval: 2000
         running: true
         repeat: true
         onTriggered: {
