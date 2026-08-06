@@ -152,9 +152,15 @@ apply_wallpaper() {
             fi
             ;;
         *)
-            # Fallback to general tools like swww or feh if installed
+            # Fallback to general tools like swww or feh if installed.
+            # Routes through apply_wallpaper_swww (which calls
+            # ensure_swww_daemon), not a bare `swww img` — otherwise this
+            # races swww-daemon at session startup (autostart/exec-once
+            # entries commonly get fired back-to-back with no ordering
+            # guarantee between them) and silently no-ops, the same failure
+            # mode already documented on ensure_swww_daemon above.
             if command -v swww >/dev/null 2>&1; then
-                swww img "$path" >/dev/null 2>&1
+                apply_wallpaper_swww "$path" "$mon"
             elif command -v swaybg >/dev/null 2>&1; then
                 pkill swaybg
                 swaybg -i "$path" -m fill >/dev/null 2>&1 &
