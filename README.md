@@ -37,8 +37,9 @@ Floating top bar (`modules/Bar.qml`, rounded corners, gap from screen edges) wit
     untested.
 - `Clock.qml`
 - `Weather.qml` — wttr.in condition icon + temperature (`?format=%c+%t`), polled every
-  15 min, shown left of the clock (ported from quickshell-d77's Dashboard, minus the
-  location text — no room for it in a bar widget)
+  15 min, shown left of the clock (ported from quickshell-d77's Dashboard). The fuller
+  `?format=3` line (location + condition + temp) is fetched alongside it and shown as
+  a tooltip below the bar on hover.
 - `Cpu.qml` / `Ram.qml` — usage % polled from `/proc/stat` / `/proc/meminfo`
 - `Volume.qml` — ALSA volume/mute via `amixer` (this setup runs plain PulseAudio,
   not PipeWire, so volume is read through ALSA rather than
