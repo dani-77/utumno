@@ -1,0 +1,20 @@
+# Template file for 'utumno'
+# See void/README.md in the utumno repo for how to build this with xbps-src.
+pkgname=utumno
+version=0.1.0
+revision=1
+build_style=gnu-makefile
+hostmakedepends="make rsync"
+depends="quickshell power-profiles-daemon alsa-utils alsa-tools brightnessctl wireless_tools"
+short_desc="Minimal Quickshell desktop shell for Wayland compositors"
+maintainer="Daniel Azevedo <daniazevedo77@gmail.com>"
+license="MIT"
+homepage="https://github.com/dani-77/utumno"
+changelog="https://github.com/dani-77/utumno/releases"
+distfiles="https://github.com/dani-77/utumno/archive/refs/tags/${version}.tar.gz"
+checksum=0000000000000000000000000000000000000000000000000000000000000000
+
+post_install() {
+	vlicense LICENSE
+	vdoc README.md
+}

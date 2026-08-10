@@ -141,6 +141,11 @@ sudo make install
 # sudo make uninstall  to remove
 ```
 
+**On Void Linux**, that same system-wide install is also packaged as a proper
+`xbps-src` template — see [void/README.md](../void/README.md), or grab a
+pre-built binary from
+[`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77).
+
 Add to your niri `config.kdl`:
 
 ```kdl
@@ -212,8 +217,9 @@ utumno/
 │   └── Osd.qml
 ├── session/
 │   └── SessionMenu.qml     # suspend/reboot/poweroff/logout + error banner
-└── ollamachat/
-    └── OllamaChat.qml      # chat popup for a local Ollama daemon
+├── ollamachat/
+│   └── OllamaChat.qml      # chat popup for a local Ollama daemon
+└── void/                   # Void Linux xbps-src packaging (see void/README.md)
 ```
 
 ## IPC

@@ -44,6 +44,10 @@ Clone Utumno straight into Quickshell's config folder:
 git clone https://github.com/dani-77/utumno ~/.config/quickshell/utumno
 ```
 
+**On Void Linux**, Utumno is also available as a proper `xbps-src` package —
+see [void/README.md](void/README.md) for the template, or the [technical
+documentation](doc/README.md#installation) for the manual/Makefile routes.
+
 Then tell your compositor to start it automatically when you log in.
 
 **On niri**, add this line to your `config.kdl`:
