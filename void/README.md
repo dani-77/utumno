@@ -48,6 +48,12 @@ compositor.
   [technical documentation](../doc/README.md#dependencies-void-linux)) are
   left out of `depends` since they're either already part of a typical
   desktop setup or a matter of choosing one of several alternatives.
-- A ready-built binary package is also kept in sync in
-  [`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77) if you'd
-  rather not build it yourself.
+- A ready-built binary is also kept in sync as part of the
+  [`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77) collection,
+  served from its SourceForge repo — no local build needed:
+
+  ```sh
+  sudo sh -c 'echo "repository=https://sourceforge.net/projects/d77void/files/d77void-repo" >> /etc/xbps.d/d77void.conf'
+  sudo xbps-install -S
+  sudo xbps-install utumno
+  ```

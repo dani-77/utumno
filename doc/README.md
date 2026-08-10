@@ -142,9 +142,10 @@ sudo make install
 ```
 
 **On Void Linux**, that same system-wide install is also packaged as a proper
-`xbps-src` template — see [void/README.md](../void/README.md), or grab a
-pre-built binary from
-[`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77).
+`xbps-src` template — see [void/README.md](../void/README.md) to build it
+yourself, or grab a pre-built binary from the
+[`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77) repo (served
+via its SourceForge repo, see that project's README).
 
 Add to your niri `config.kdl`:
 
