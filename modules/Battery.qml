@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Services.UPower
 import "../config" as Cfg
 
@@ -12,6 +13,44 @@ Item {
     visible: hasBattery
     implicitWidth: hasBattery ? row.implicitWidth + Cfg.Colors.gap * 2 : 0
     implicitHeight: parent ? parent.height : Cfg.Colors.barHeight
+
+    property bool hovered: false
+
+    // "Xh Ymin" (or just "Ymin" under an hour) from a duration in seconds.
+    function formatDuration(seconds) {
+        const total = Math.round(seconds / 60);
+        const h = Math.floor(total / 60);
+        const m = total % 60;
+        return h > 0 ? (h + "h " + m + "min") : (m + "min");
+    }
+
+    // Charge/discharge line for the tooltip: time to empty or to full
+    // when known, falling back to the raw UPower state otherwise
+    // (e.g. "Fully charged", "Pending charge").
+    function timeText() {
+        if (!root.device) return "";
+        const state = root.device.state;
+        if (state === UPowerDeviceState.Charging) {
+            const t = root.device.timeToFull;
+            return t > 0 ? ("Charging — " + root.formatDuration(t) + " until full") : "Charging";
+        }
+        if (state === UPowerDeviceState.Discharging) {
+            const t = root.device.timeToEmpty;
+            return t > 0 ? (root.formatDuration(t) + " remaining") : "On battery";
+        }
+        // e.g. "FullyCharged" → "Fully Charged"
+        return UPowerDeviceState.toString(state).replace(/([a-z])([A-Z])/g, "$1 $2");
+    }
+
+    // Mirrors Osd.qml's own _powerLabel() mapping — kept local since
+    // that one is private to the OSD.
+    function profileLabel() {
+        const p = root.osd ? root.osd.powerProfile : "";
+        if (p === "performance") return "Performance";
+        if (p === "power-saver") return "Power saver";
+        if (p === "balanced") return "Balanced";
+        return "Unknown";
+    }
 
     function icon(pct, charging) {
         // Nerd Font (Material Design) battery glyphs, by codepoint to avoid encoding issues
@@ -54,6 +93,50 @@ Item {
     MouseArea {
         anchors.fill: row
         acceptedButtons: Qt.LeftButton
+        hoverEnabled: true
         onClicked: root.osd && root.osd.cyclePowerProfile()
+        onEntered: root.hovered = true
+        onExited: root.hovered = false
+    }
+
+    // Tooltip: time to empty/full + active power profile, shown below
+    // the bar on hover — same pattern as Weather.qml's tooltip.
+    LazyLoader {
+        active: root.hovered
+
+        PanelWindow {
+            // Anchored to the top-right corner (Battery lives at the
+            // right end of the bar), unlike Weather's centered tooltip
+            // which suits its spot in the bar's center row.
+            anchors.top: true
+            anchors.right: true
+            margins.top: Cfg.Colors.barHeight + Cfg.Colors.gap * 2
+            margins.right: Cfg.Colors.gap
+            exclusiveZone: 0
+            color: "transparent"
+
+            implicitWidth: tooltipLabel.implicitWidth + Cfg.Colors.gap * 3
+            implicitHeight: tooltipLabel.implicitHeight + Cfg.Colors.gap * 2
+
+            // Empty mask → does not block mouse events.
+            mask: Region {}
+
+            Rectangle {
+                anchors.fill: parent
+                radius: Cfg.Colors.radius
+                color: Cfg.Colors.bg
+                border.color: Cfg.Colors.muted
+                border.width: 1
+
+                Text {
+                    id: tooltipLabel
+                    anchors.centerIn: parent
+                    color: Cfg.Colors.fg
+                    font.family: "monospace"
+                    font.pixelSize: Cfg.Colors.fsize
+                    text: root.timeText() + "\nPower profile: " + root.profileLabel()
+                }
+            }
+        }
     }
 }
