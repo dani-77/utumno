@@ -117,11 +117,17 @@ bind = SUPER SHIFT, E, exec, qs -c utumno ipc call session toggle
 
 ### The AI chat popup
 
-Click the green **AI** button on the bar to open a chat window that talks to a
-[Ollama](https://ollama.com) instance running on your own machine — nothing is sent
-anywhere else. If Ollama has no models installed yet, Utumno downloads a small one
-automatically so there's something to chat with right away; you can switch to a bigger
-model any time from the popup itself.
+There's no bar button for this one — the feature isn't consistent or reliable enough
+yet to earn permanent bar real estate. Open it with a keybind instead:
+
+```
+bind = SUPER, A, exec, qs -c utumno ipc call ollamachat toggle
+```
+
+It's a chat window that talks to a [Ollama](https://ollama.com) instance running on
+your own machine — nothing is sent anywhere else. If Ollama has no models installed
+yet, Utumno downloads a small one automatically so there's something to chat with
+right away; you can switch to a bigger model any time from the popup itself.
 
 ### Changing your wallpaper
 

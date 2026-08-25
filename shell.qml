@@ -51,7 +51,6 @@ ShellRoot {
         appLauncher: appLauncher
         sessionMenu: sessionMenu
         osd: osd
-        ollamaChat: ollamaChat
         compositor: root.compositor
     }
 
@@ -84,7 +83,10 @@ ShellRoot {
     // OLLAMA CHAT
     // ══════════════════════════════════════════════════════
     // Native chat popup for a locally running Ollama daemon
-    // (http://127.0.0.1:11434). Ported from quickshell-d77.
+    // (http://127.0.0.1:11434). Ported from quickshell-d77. No bar button —
+    // the feature isn't consistent or reliable enough yet to earn permanent
+    // bar real estate. Open it via IPC (see the ollamachat IpcHandler below)
+    // or a keybind.
     OllamaChat {
         id: ollamaChat
     }

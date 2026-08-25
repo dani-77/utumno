@@ -13,7 +13,9 @@
 // overlay, custom Rectangle+TextInput fields (no
 // QtQuick.Controls, to stay consistent with the rest of the
 // shell), Tokyo Night palette from config/Colors.qml.
-// Opened from the bar's "AI" button or via IPC.
+// No bar button — the feature isn't consistent or reliable
+// enough yet to earn permanent bar real estate. Opened via
+// IPC or a keybind instead.
 // ══════════════════════════════════════════════════════
 import QtQuick
 import QtQuick.Layouts

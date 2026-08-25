@@ -9,7 +9,6 @@ PanelWindow {
     property var appLauncher
     property var sessionMenu
     property var osd
-    property var ollamaChat
     property string compositor: "generic"
 
     anchors {
@@ -59,30 +58,6 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: bar.appLauncher && bar.appLauncher.toggle()
-                }
-            }
-
-            Rectangle { width: 1; height: 22; color: Cfg.Colors.muted }
-
-            Rectangle {
-                width: 30
-                height: 30
-                radius: 7
-                color: aiMa.containsMouse ? Qt.lighter(Cfg.Colors.green, 1.3) : Cfg.Colors.green
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "AI"
-                    font.family: Cfg.Colors.font
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: Cfg.Colors.bg
-                }
-                MouseArea {
-                    id: aiMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: bar.ollamaChat && bar.ollamaChat.toggle()
                 }
             }
 

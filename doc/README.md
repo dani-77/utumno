@@ -52,8 +52,8 @@ Floating top bar (`modules/Bar.qml`, rounded corners, gap from screen edges) wit
 - `Battery.qml` — state-dependent Nerd Font icon (charging/level) + % via
   `UPower.displayDevice`; click cycles the power profile
   (`osd.cyclePowerProfile()`/`powerprofilesctl`), same as quickshell-d77's bar
-- Launcher button (left), Ollama chat button (left, "AI"), and session button (right, ⏻),
-  all ported from quickshell-d77
+- Launcher button (left) and session button (right, ⏻), both ported from quickshell-d77.
+  The Ollama chat has no bar button (see `ollamachat/` below) — keybind/IPC only.
 
 The launcher and `nmtui-float` share one auto-detected terminal (`Launcher.qml`'s
 `_termCandidates`: alacritty > kitty > foot > wezterm > xterm) — nothing hardcoded, matching
@@ -87,7 +87,9 @@ instead of an inline `g` singleton:
   it arrives, lets you switch between installed models or pull a new one straight from the
   popup (with live download progress), and remembers the last picked model at
   `~/.config/ollama-chat/model.conf` (shared with quickshell-d77, since it's the same file).
-  Opened from the bar's green "AI" button or via IPC. On startup it also runs a one-off
+  There's deliberately no bar button for it — the feature isn't consistent or reliable
+  enough yet to earn permanent bar real estate. Open it via IPC or a keybind instead (see
+  the root README). On startup it also runs a one-off
   hardware check (`nvidia-smi` for NVIDIA VRAM, `rocm-smi`/`lspci` for AMD or other dedicated
   GPUs, falling back to total system RAM when there's no dedicated GPU) and shows a suggested
   model-size range for the machine; installed models matching that range get a `★` in the
