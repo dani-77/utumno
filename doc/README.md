@@ -87,13 +87,21 @@ instead of an inline `g` singleton:
   it arrives, lets you switch between installed models or pull a new one straight from the
   popup (with live download progress), and remembers the last picked model at
   `~/.config/ollama-chat/model.conf` (shared with quickshell-d77, since it's the same file).
-  There's deliberately no bar button for it — the feature isn't consistent or reliable
+  Chat requests go through `/api/chat` with the whole conversation history sent each time, so
+  the model actually remembers earlier turns instead of seeing each prompt in isolation; the
+  model itself stays loaded for the rest of the session (`keep_alive: "5m"`) rather than
+  reloading from scratch on every message, and is explicitly unloaded the moment the popup
+  closes. There's deliberately no bar button for it — the feature isn't consistent or reliable
   enough yet to earn permanent bar real estate. Open it via IPC or a keybind instead (see
   the root README). On startup it also runs a one-off
   hardware check (`nvidia-smi` for NVIDIA VRAM, `rocm-smi`/`lspci` for AMD or other dedicated
   GPUs, falling back to total system RAM when there's no dedicated GPU) and shows a suggested
   model-size range for the machine; installed models matching that range get a `★` in the
-  picker. The status dot checks Ollama with a bounded `curl` against the API root rather than
+  picker. The `lspci` fallback also cross-checks `/proc/cpuinfo` for AMD's "with Radeon
+  Graphics" marketing suffix (present on nearly every iGPU-equipped Ryzen) — some AMD APUs
+  report only a bare codename in `lspci` (e.g. `[AMD/ATI] Barcelo`, no "Radeon"/"Graphics" in
+  it) that would otherwise be mistaken for a dedicated card. The status dot checks Ollama with
+  a bounded `curl` against the API root rather than
   `sv status ollama` (a plain user always gets "access denied" on this runit install's
   `0700 root:root` supervise dirs, so the dot would read down forever otherwise), and the
   generate request is guarded with `--speed-limit 1 --speed-time 30` rather than a flat

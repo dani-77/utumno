@@ -46,11 +46,13 @@ PanelWindow {
     // ══════════════════════════════════════════════════════
     readonly property string fallbackModel:   "qwen2.5:0.5b"
     readonly property string installSentinel: "+ install new model..."
-    // Without this, /api/generate falls back to Ollama's server-side
-    // default (5 min), which keeps the model resident and consuming
-    // RAM/CPU long after you've stopped chatting. "0" unloads it the
-    // instant a response finishes, so it's only ever loaded on demand.
-    readonly property string keepAlive:       "0"
+    // Keeps the model resident for the rest of the chat session instead of
+    // reloading it from scratch on every single message ("0" used to unload
+    // right after each reply — technically load-on-demand, but it meant
+    // every message paid a full cold-load, which is most of why the chat
+    // felt sluggish). unloadModel() below forces it back out the moment the
+    // window closes, so nothing lingers loaded once nobody's chatting.
+    readonly property string keepAlive:       "5m"
     property string configPath: Quickshell.env("HOME") + "/.config/ollama-chat/model.conf"
 
     // ══════════════════════════════════════════════════════
@@ -59,6 +61,12 @@ PanelWindow {
     property string model:          fallbackModel
     property string savedModel:     ""
     property string history:        ""
+    // Accumulated {role, content} turns, sent whole on every request via
+    // /api/chat so the model actually remembers earlier turns — the plain
+    // /api/generate call this used to make only ever saw the latest prompt
+    // in isolation. Cleared in hide() so a freshly reopened chat starts
+    // clean rather than silently continuing a stale conversation.
+    property var    messages:       []
     property bool   ollamaUp:       false
     property bool   modelsLoaded:   false
     property bool   installing:     false
@@ -175,12 +183,26 @@ PanelWindow {
         proc.running   = false
     }
 
+    // Fire-and-forget: drops the model from memory right away instead of
+    // waiting out `keepAlive`. A request with keep_alive=0 and no prompt
+    // just unloads, it doesn't generate anything.
+    function unloadModel() {
+        unloadProc.command = ["curl", "-s", "-o", "/dev/null", "-X", "POST",
+            "--max-time", "5",
+            "http://127.0.0.1:11434/api/generate",
+            "-d", JSON.stringify({model: chat.model, keep_alive: 0})]
+        unloadProc.running = true
+    }
+
     // ── Public API ───────────────────────────────────────
     function open() {
         visible = true
         input.forceActiveFocus()
     }
     function hide() {
+        chat.unloadModel()
+        chat.messages = []
+        chat.history  = ""
         modelMenuOpen        = false
         installField.visible = false
         visible = false
@@ -542,6 +564,8 @@ PanelWindow {
                             var q = text.trim()
                             if (q.length === 0 || proc.running) return
                             chat.history += "\n> " + q + "\n"
+                            chat.messages = chat.messages.concat([{role: "user", content: q}])
+                            proc.replyText     = ""
                             proc.errorBuffer  = ""
                             proc.gotAnyOutput = false
                             proc.cancelled    = false
@@ -551,8 +575,8 @@ PanelWindow {
                             // (e.g. qwen2.5:3b) mid-stream just for taking
                             // longer than 30s in total to finish generating.
                             proc.command = ["curl", "-s", "-N", "--speed-limit", "1", "--speed-time", "30",
-                                "http://127.0.0.1:11434/api/generate",
-                                "-d", JSON.stringify({model: chat.model, prompt: q, stream: true, keep_alive: chat.keepAlive})]
+                                "http://127.0.0.1:11434/api/chat",
+                                "-d", JSON.stringify({model: chat.model, messages: chat.messages, stream: true, keep_alive: chat.keepAlive})]
                             proc.running = true
                             text = ""
                         }
@@ -614,6 +638,7 @@ PanelWindow {
     }
 
     Process { id: saveModelProc }
+    Process { id: unloadProc }
 
     // --- Hardware detection (dedicated GPU / RAM) ---
     // Runs once at startup: prefers nvidia-smi (exact VRAM), falls back to
@@ -641,7 +666,21 @@ PanelWindow {
                 fi
             fi
             if command -v lspci >/dev/null 2>&1; then
-                gpu_line=$(lspci | grep -Ei 'vga compatible|3d controller' | grep -Ei 'nvidia|amd|radeon|geforce|rtx|quadro|arc a[0-9]' | head -1)
+                # AMD APUs report themselves in /proc/cpuinfo as e.g. "AMD
+                # Ryzen 7 5825U with Radeon Graphics" — AMD's standard
+                # marketing suffix across nearly all their iGPU-equipped CPU
+                # lines. More reliable than the GPU's own lspci description,
+                # which often uses just a bare codename (e.g. "Barcelo")
+                # with neither "Radeon" nor "Graphics" in it at all.
+                cpu_igpu=0
+                grep -qi 'with radeon graphics' /proc/cpuinfo 2>/dev/null && cpu_igpu=1
+                gpu_line=$(lspci | grep -Ei 'vga compatible|3d controller' | grep -Ei 'nvidia|amd|radeon|geforce|rtx|quadro|arc a[0-9]' | awk -v igpu="$cpu_igpu" '
+                    { l = tolower($0) }
+                    l ~ /rx/ { print; next }
+                    (l ~ /radeon/ && l ~ /graphics/) { next }
+                    (igpu == 1 && (l ~ /amd/ || l ~ /ati/)) { next }
+                    { print }
+                ' | head -1)
                 if [ -n "$gpu_line" ]; then
                     name=$(printf '%s' "$gpu_line" | sed 's/^[^:]*: //;s/["\\\\]/ /g')
                     printf '{"gpu":"dedicated","name":"%s"}' "$name"
@@ -820,6 +859,11 @@ PanelWindow {
         // so onExited can tell a user-requested stop from a real failure
         // (curl's SIGTERM exit code otherwise reads as an error below).
         property bool   cancelled:    false
+        // Accumulates just this reply's text as it streams in, so it can be
+        // appended to chat.messages as one assistant turn once the response
+        // finishes — /api/chat streams token deltas the same way
+        // /api/generate did, just nested under message.content.
+        property string replyText:    ""
 
         stdout: SplitParser {
             onRead: (line) => {
@@ -829,7 +873,9 @@ PanelWindow {
                     if (chunk.error) {
                         chat.history += "\n[model error: " + chunk.error + "]\n"
                     } else {
-                        chat.history += chunk.response || ""
+                        var piece = (chunk.message && chunk.message.content) || ""
+                        proc.replyText += piece
+                        chat.history   += piece
                     }
                 } catch (e) {}
             }
@@ -849,6 +895,9 @@ PanelWindow {
                 } else if (!proc.gotAnyOutput) {
                     chat.history += "\n[no response from Ollama — curl exit code: " + exitCode + "]\n"
                 }
+            }
+            if (proc.replyText.length > 0) {
+                chat.messages = chat.messages.concat([{role: "assistant", content: proc.replyText}])
             }
         }
     }
