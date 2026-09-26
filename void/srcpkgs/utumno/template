@@ -1,18 +1,22 @@
 # Template file for 'utumno'
-# See void/README.md in the utumno repo for how to build this with xbps-src.
 pkgname=utumno
-version=0.1.1
-revision=1
+version=0.1.2
+revision=2
 build_style=gnu-makefile
 hostmakedepends="make rsync"
-depends="quickshell power-profiles-daemon alsa-utils alsa-tools brightnessctl wireless_tools"
-short_desc="Minimal Quickshell desktop shell for Wayland compositors"
-maintainer="Daniel Azevedo <daniazevedo77@gmail.com>"
+makedepends="wayland-devel"
+# quickshell is required at runtime but intentionally NOT listed in depends=:
+# pinning it here holds back system upgrades whenever utumno is installed.
+# Install quickshell yourself alongside this package.
+depends="power-profiles-daemon alsa-utils alsa-tools brightnessctl wireless_tools"
+short_desc="Minimal Quickshell shell for wayland compositors, lighter sibling of quickshell-d77"
+maintainer="Daniel Azevedo <daniazevedo77@posteo.net>"
 license="MIT"
 homepage="https://github.com/dani-77/utumno"
 changelog="https://github.com/dani-77/utumno/releases"
 distfiles="https://github.com/dani-77/utumno/archive/refs/tags/${version}.tar.gz"
-checksum=6dfb844228280d1ec01e439c65febbb044f7fe5ea26df2e5daf9c7eca86181df
+checksum=7a784f95abc1cc1b47140445c838b74431fd548de9ac8af6b133edd69dfaadac
+repository=d77
 
 post_install() {
 	vlicense LICENSE

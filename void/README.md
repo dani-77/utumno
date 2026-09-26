@@ -41,9 +41,13 @@ compositor.
   Bump `version` and recompute the checksum whenever you want to package a
   newer release, e.g.:
   `curl -sL https://github.com/dani-77/utumno/archive/refs/tags/<version>.tar.gz | sha256sum`.
-- `quickshell` itself, plus everything else in `depends`, is already
-  packaged in void-packages, so `xbps-src`/`xbps-install` pull it in
-  automatically. Optional pieces (a wallpaper daemon, PAM for the lock
+- The template is a copy of the one in
+  [`d77void/srcpkgs-d77`](https://github.com/d77void/srcpkgs-d77), which is
+  the authoritative source.
+- Everything in `depends` is already packaged in void-packages, so
+  `xbps-src`/`xbps-install` pull it in automatically. `quickshell` itself is
+  deliberately left out of `depends` (pinning it would hold back system
+  upgrades) — install it yourself alongside this package. Optional pieces (a wallpaper daemon, PAM for the lock
   screen, `elogind` for the session menu — see the
   [technical documentation](../doc/README.md#dependencies-void-linux)) are
   left out of `depends` since they're either already part of a typical

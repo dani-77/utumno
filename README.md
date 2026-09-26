@@ -44,6 +44,10 @@ Clone Utumno straight into Quickshell's config folder:
 git clone https://github.com/dani-77/utumno ~/.config/quickshell/utumno
 ```
 
+**On Arch Linux**, it's in the AUR as
+[`utumno`](https://aur.archlinux.org/packages/utumno) (`yay -S utumno`; the same
+`PKGBUILD` lives in [packaging/arch](packaging/arch/PKGBUILD)).
+
 **On Void Linux**, Utumno is also available as a proper `xbps-src` package —
 see [void/README.md](void/README.md) for the template, or the [technical
 documentation](doc/README.md#installation) for the manual/Makefile routes.
