@@ -328,8 +328,8 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: 14
-                color: Qt.rgba(0.10, 0.11, 0.15, 0.92)   // semi-transparent colBg
-                border.color: Qt.rgba(0.27, 0.29, 0.42, 0.6)
+                color: Cfg.Colors.withAlpha(root.colBg, 0.92)
+                border.color: Cfg.Colors.withAlpha(root.colMuted, 0.6)
                 border.width: 1
 
                 RowLayout {

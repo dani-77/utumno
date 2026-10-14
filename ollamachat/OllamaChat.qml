@@ -362,7 +362,7 @@ PanelWindow {
                         width:  modelList.width
                         height: 28
                         radius: 6
-                        color: itemMa.containsMouse ? Qt.rgba(0.73, 0.60, 0.97, 0.18) : "transparent"
+                        color: itemMa.containsMouse ? Cfg.Colors.withAlpha(chat.colPurple, 0.18) : "transparent"
 
                         Text {
                             anchors.fill: parent
@@ -597,7 +597,7 @@ PanelWindow {
                     implicitWidth: 64
                     implicitHeight: 40
                     radius: 8
-                    color: stopMa.containsMouse ? Qt.rgba(0.94, 0.33, 0.31, 0.25) : Qt.darker(chat.colBg, 1.3)
+                    color: stopMa.containsMouse ? Cfg.Colors.withAlpha(chat.colRed, 0.25) : Qt.darker(chat.colBg, 1.3)
                     border.width: 1
                     border.color: chat.colRed
 

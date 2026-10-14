@@ -119,7 +119,7 @@ PanelWindow {
                 radius: 7
                 color: sessBtnMa.containsMouse || (bar.sessionMenu && bar.sessionMenu.sessionOpen)
                     ? Cfg.Colors.red
-                    : Qt.rgba(0.97, 0.46, 0.56, 0.3)
+                    : Cfg.Colors.withAlpha(Cfg.Colors.red, 0.3)
 
                 Text {
                     anchors.centerIn: parent

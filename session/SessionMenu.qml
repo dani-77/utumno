@@ -183,7 +183,7 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 6
-                    color: (ma0.containsMouse || sessionBox.currentIndex === 0) ? Qt.rgba(0.48, 0.64, 0.97, 0.2) : "transparent"
+                    color: (ma0.containsMouse || sessionBox.currentIndex === 0) ? Cfg.Colors.withAlpha(Cfg.Colors.blue, 0.2) : "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
@@ -217,7 +217,7 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 6
-                    color: (ma1.containsMouse || sessionBox.currentIndex === 1) ? Qt.rgba(0.88, 0.69, 0.41, 0.2) : "transparent"
+                    color: (ma1.containsMouse || sessionBox.currentIndex === 1) ? Cfg.Colors.withAlpha(Cfg.Colors.yellow, 0.2) : "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
@@ -251,7 +251,7 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 6
-                    color: (ma2.containsMouse || sessionBox.currentIndex === 2) ? Qt.rgba(0.88, 0.69, 0.41, 0.2) : "transparent"
+                    color: (ma2.containsMouse || sessionBox.currentIndex === 2) ? Cfg.Colors.withAlpha(Cfg.Colors.yellow, 0.2) : "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
@@ -285,7 +285,7 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 6
-                    color: (ma3.containsMouse || sessionBox.currentIndex === 3) ? Qt.rgba(0.97, 0.46, 0.56, 0.2) : "transparent"
+                    color: (ma3.containsMouse || sessionBox.currentIndex === 3) ? Cfg.Colors.withAlpha(Cfg.Colors.red, 0.2) : "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10
@@ -319,7 +319,7 @@ Scope {
                     Layout.fillWidth: true
                     height: 44
                     radius: 6
-                    color: (ma4.containsMouse || sessionBox.currentIndex === 4) ? Qt.rgba(0.27, 0.29, 0.42, 0.5) : "transparent"
+                    color: (ma4.containsMouse || sessionBox.currentIndex === 4) ? Cfg.Colors.withAlpha(Cfg.Colors.muted, 0.5) : "transparent"
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: 10

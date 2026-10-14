@@ -1,0 +1,21 @@
+# Dedicated matugen config for the shared d77 palette, passed with `-c` by
+# wallpaper/set-wallpaper.sh so the user's own ~/.config/matugen/config.toml
+# is never touched. input_path is resolved relative to this file.
+#
+# The output contract (~/.cache/d77/palette.json) is shared with
+# quickshell-d77 and fabric-d77: keys match config/Colors.qml.
+[config]
+
+# Status colors (battery, weather, warnings) have no Material You role.
+# matugen harmonizes these toward the wallpaper's source color, so they
+# take on its tint but stay recognizably green/yellow/orange.
+[config.custom_colors]
+green = "#9ece6a"
+yellow = "#e0af68"
+orange = "#ff9e64"
+
+[templates.d77]
+input_path = "./d77-palette.json"
+# Written to a .tmp file and renamed by set-wallpaper.sh, so FileView
+# watchers never read a half-written palette.
+output_path = "~/.cache/d77/palette.json.tmp"

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "source": "{{image}}",
+  "bg": "{{colors.surface.default.hex}}",
+  "bgDark": "{{colors.surface_container_lowest.default.hex}}",
+  "bgHighlight": "{{colors.surface_container_high.default.hex}}",
+  "fg": "{{colors.on_surface.default.hex}}",
+  "fgDark": "{{colors.on_surface_variant.default.hex}}",
+  "comment": "{{colors.outline.default.hex}}",
+  "muted": "{{colors.outline_variant.default.hex}}",
+  "blue": "{{colors.primary.default.hex}}",
+  "cyan": "{{colors.secondary.default.hex}}",
+  "magenta": "{{colors.tertiary.default.hex}}",
+  "cyanAccent": "{{colors.secondary_fixed_dim.default.hex}}",
+  "red": "{{colors.error.default.hex}}",
+  "green": "{{colors.green.default.hex}}",
+  "yellow": "{{colors.yellow.default.hex}}",
+  "orange": "{{colors.orange.default.hex}}"
+}

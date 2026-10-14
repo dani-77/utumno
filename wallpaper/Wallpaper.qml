@@ -24,6 +24,7 @@ PanelWindow {
     property color colCyan:   Cfg.Colors.cyanAccent
     property color colBlue:   Cfg.Colors.blue
     property color colPurple: Cfg.Colors.magenta
+    property color colRed:    Cfg.Colors.red
     property string font:     Cfg.Colors.font
     property int    fsize:    Cfg.Colors.fsize
 
@@ -171,6 +172,8 @@ PanelWindow {
         onExited: function(code) {
             if (code !== 0)
                 wallpaper.lastError = "wallpaper failed (code " + code + ")"
+            // set-wallpaper.sh regenerates the matugen palette before exiting.
+            Cfg.Colors.reloadPalette()
         }
     }
 
@@ -258,6 +261,79 @@ PanelWindow {
                     color: wallpaper.colMuted
                 }
 
+                // Palette mix: 0 = hardcoded Tokyo Night, 1 = matugen palette
+                // of the current wallpaper. Live preview while dragging,
+                // persisted on release (see config/Colors.qml).
+                RowLayout {
+                    Layout.leftMargin: 8
+                    spacing: 6
+                    opacity: Cfg.Colors.paletteValid ? 1.0 : 0.5
+
+                    Text {
+                        text: "󰏘"
+                        font.family: wallpaper.font
+                        font.pixelSize: wallpaper.fsize
+                        color: wallpaper.colPurple
+                    }
+
+                    Item {
+                        id: mixSlider
+                        implicitWidth: 110
+                        implicitHeight: 18
+
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width
+                            height: 4
+                            radius: 2
+                            color: wallpaper.colMuted
+
+                            Rectangle {
+                                width: mixKnob.x + mixKnob.width / 2
+                                height: parent.height
+                                radius: parent.radius
+                                color: wallpaper.colPurple
+                            }
+                        }
+
+                        Rectangle {
+                            id: mixKnob
+                            width: 12
+                            height: 12
+                            radius: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: Cfg.Colors.mix * (mixSlider.width - width)
+                            color: mixMa.pressed || mixMa.containsMouse ? wallpaper.colFg : wallpaper.colPurple
+                        }
+
+                        MouseArea {
+                            id: mixMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            function valueAt(mx) {
+                                var w = mixSlider.width - mixKnob.width
+                                return Math.max(0, Math.min(1, (mx - mixKnob.width / 2) / w))
+                            }
+                            onPressed: mouse => Cfg.Colors.mix = valueAt(mouse.x)
+                            onPositionChanged: mouse => {
+                                if (pressed)
+                                    Cfg.Colors.mix = valueAt(mouse.x)
+                            }
+                            onReleased: mouse => Cfg.Colors.saveMix(valueAt(mouse.x))
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(Cfg.Colors.mix * 100) + "%"
+                        Layout.preferredWidth: 34
+                        horizontalAlignment: Text.AlignRight
+                        font.family: wallpaper.font
+                        font.pixelSize: wallpaper.fsize - 1
+                        color: wallpaper.colMuted
+                    }
+                }
+
                 // Reset wallpaper: returns to the decorative backdrop (Backdrop.qml).
                 Rectangle {
                     id: resetBtn
@@ -265,9 +341,9 @@ PanelWindow {
                     implicitWidth:  resetRow.implicitWidth  + 16
                     implicitHeight: resetRow.implicitHeight + 8
                     radius: 6
-                    color: resetMa.containsMouse ? Qt.rgba(0.94, 0.3, 0.3, 0.18) : "transparent"
+                    color: resetMa.containsMouse ? Cfg.Colors.withAlpha(wallpaper.colRed, 0.18) : "transparent"
                     border.width: 1
-                    border.color: resetMa.containsMouse ? "#f7768e" : wallpaper.colMuted
+                    border.color: resetMa.containsMouse ? wallpaper.colRed : wallpaper.colMuted
 
                     RowLayout {
                         id: resetRow
@@ -278,13 +354,13 @@ PanelWindow {
                             text: "󰑓"
                             font.family: wallpaper.font
                             font.pixelSize: wallpaper.fsize
-                            color: "#f7768e"
+                            color: wallpaper.colRed
                         }
                         Text {
                             text: "Clear"
                             font.family: wallpaper.font
                             font.pixelSize: wallpaper.fsize - 1
-                            color: "#f7768e"
+                            color: wallpaper.colRed
                         }
                     }
 
@@ -304,8 +380,8 @@ PanelWindow {
                 visible: wallpaper.lastError !== ""
                 height: visible ? 32 : 0
                 radius: 6
-                color: Qt.rgba(0.94, 0.3, 0.3, 0.15)
-                border.color: "#f7768e"
+                color: Cfg.Colors.withAlpha(wallpaper.colRed, 0.15)
+                border.color: wallpaper.colRed
                 border.width: 1
 
                 Text {
@@ -317,7 +393,7 @@ PanelWindow {
                     text: wallpaper.lastError
                     font.family: wallpaper.font
                     font.pixelSize: wallpaper.fsize - 2
-                    color: "#f7768e"
+                    color: wallpaper.colRed
                 }
             }
 
