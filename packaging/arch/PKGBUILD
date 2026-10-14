@@ -15,6 +15,7 @@ makedepends=('rsync')
 optdepends=(
   'upower: battery widget'
   'networkmanager: network widget'
+  'matugen: wallpaper-based color palette'
 )
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('7a784f95abc1cc1b47140445c838b74431fd548de9ac8af6b133edd69dfaadac')
