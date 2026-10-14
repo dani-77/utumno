@@ -2,7 +2,7 @@
 # wallpaper/set-wallpaper.sh so the user's own ~/.config/matugen/config.toml
 # is never touched. input_path is resolved relative to this file.
 #
-# The output contract (~/.cache/d77/palette.json) is shared with
+# The output contract (~/.cache/d77/palette.json) is shared by utumno,
 # quickshell-d77 and fabric-d77: keys match config/Colors.qml.
 [config]
 

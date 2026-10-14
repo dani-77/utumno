@@ -15,12 +15,13 @@ import "../Services" as Services
 // `mix` is the single slider in the wallpaper picker, persisted to
 // ~/.config/d77/theme-mix.
 //
-// palette.json and theme-mix are shared with quickshell-d77 and fabric-d77,
-// so the keys in the JSON match the token names below.
+// palette.json and theme-mix are shared by utumno, quickshell-d77 and
+// fabric-d77, so the keys in the JSON match the token names below. Keep
+// this file identical across the QML shells.
 Singleton {
     id: root
 
-    // Paleta Tokyo Night — consistente com os teus outros projetos (fabric-d77 / quickshell-d77)
+    // Tokyo Night, consistent across utumno / quickshell-d77 / fabric-d77.
     readonly property QtObject fallback: QtObject {
         readonly property color bg: "#1a1b26"
         readonly property color bgDark: "#16161e"
