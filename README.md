@@ -119,6 +119,10 @@ bind = SUPER SHIFT, E, exec, qs -c utumno ipc call session toggle
 > qsd77 session -c utumno
 > ```
 
+On wasp and spitfire, [Kantele](https://github.com/dani-77/kantele) can set up the
+same keys for all the d77 shells: see its
+[shell keys map](https://github.com/dani-77/kantele/blob/main/doc/shell-keys.md).
+
 ### The AI chat popup
 
 There's no bar button for this one — the feature isn't consistent or reliable enough
