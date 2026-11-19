@@ -76,7 +76,7 @@ PanelWindow {
             }
             Component { id: workspacesHyprlandComp; WorkspacesHyprland {} }
             Component { id: workspacesSwayComp; WorkspacesSway {} }
-            Component { id: workspacesGenericComp; Workspaces {} }
+            Component { id: workspacesGenericComp; Workspaces { screen: bar.screen } }
         }
 
         RowLayout {

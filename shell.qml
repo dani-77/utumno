@@ -47,11 +47,19 @@ ShellRoot {
         wallpaperDir: Quickshell.env("HOME") + "/Wallpaper"
     }
 
-    Modules.Bar {
-        appLauncher: appLauncher
-        sessionMenu: sessionMenu
-        osd: osd
-        compositor: root.compositor
+    // One bar per monitor; the popups (launcher, session menu, OSD) stay
+    // single and are shared by every bar.
+    Variants {
+        model: Quickshell.screens
+
+        Modules.Bar {
+            required property var modelData
+            screen: modelData
+            appLauncher: appLauncher
+            sessionMenu: sessionMenu
+            osd: osd
+            compositor: root.compositor
+        }
     }
 
     // ══════════════════════════════════════════════════════
