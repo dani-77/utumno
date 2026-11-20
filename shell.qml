@@ -36,7 +36,7 @@ ShellRoot {
     // _termCandidates, and Network.qml's nmtui-float reuses whatever
     // it lands on — keeps both agnostic, matching quickshell-d77.
     Launcher {
-        id: appLauncher
+        id: launcherPopup
     }
 
     // ══════════════════════════════════════════════════════
@@ -48,16 +48,19 @@ ShellRoot {
     }
 
     // One bar per monitor; the popups (launcher, session menu, OSD) stay
-    // single and are shared by every bar.
+    // single and are shared by every bar. Their ids must not match the Bar
+    // properties they're bound to: inside a Variants delegate, `osd: osd`
+    // resolves to the Bar's own (empty) property, not the id, which left
+    // every bar button doing nothing.
     Variants {
         model: Quickshell.screens
 
         Modules.Bar {
             required property var modelData
             screen: modelData
-            appLauncher: appLauncher
-            sessionMenu: sessionMenu
-            osd: osd
+            appLauncher: launcherPopup
+            sessionMenu: sessionPopup
+            osd: osdPopup
             compositor: root.compositor
         }
     }
@@ -73,7 +76,7 @@ ShellRoot {
     // SESSION MENU (suspend/reboot/poweroff/logout)
     // ══════════════════════════════════════════════════════
     SessionMenu {
-        id: sessionMenu
+        id: sessionPopup
         compositor: root.compositor
         onLockRequested: lockScreen.lock()
     }
@@ -82,7 +85,7 @@ ShellRoot {
     // OSD (On-Screen Display: volume + brightness)
     // ══════════════════════════════════════════════════════
     Osd {
-        id: osd
+        id: osdPopup
         step:    5
         timeout: 2500
     }
@@ -102,9 +105,9 @@ ShellRoot {
     IpcHandler {
         target: "launcher"
 
-        function toggle(): void { appLauncher.toggle() }
-        function open(): void { appLauncher.open() }
-        function close(): void { appLauncher.close() }
+        function toggle(): void { launcherPopup.toggle() }
+        function open(): void { launcherPopup.open() }
+        function close(): void { launcherPopup.close() }
     }
 
     IpcHandler {
@@ -118,9 +121,9 @@ ShellRoot {
     IpcHandler {
         target: "session"
 
-        function toggle(): void { sessionMenu.toggle() }
-        function open(): void { sessionMenu.open() }
-        function close(): void { sessionMenu.close() }
+        function toggle(): void { sessionPopup.toggle() }
+        function open(): void { sessionPopup.open() }
+        function close(): void { sessionPopup.close() }
     }
 
     IpcHandler {
@@ -161,12 +164,12 @@ ShellRoot {
     IpcHandler {
         target: "osd"
 
-        function volumeUp(): void { osd.volumeUp() }
-        function volumeDown(): void { osd.volumeDown() }
-        function volumeMuteToggle(): void { osd.volumeMuteToggle() }
-        function brightnessUp(): void { osd.brightnessUp() }
-        function brightnessDown(): void { osd.brightnessDown() }
-        function showVolume(): void { osd.showVolume() }
-        function showBrightness(): void { osd.showBrightness() }
+        function volumeUp(): void { osdPopup.volumeUp() }
+        function volumeDown(): void { osdPopup.volumeDown() }
+        function volumeMuteToggle(): void { osdPopup.volumeMuteToggle() }
+        function brightnessUp(): void { osdPopup.brightnessUp() }
+        function brightnessDown(): void { osdPopup.brightnessDown() }
+        function showVolume(): void { osdPopup.showVolume() }
+        function showBrightness(): void { osdPopup.showBrightness() }
     }
 }
