@@ -18,7 +18,7 @@ optdepends=(
   'matugen: wallpaper-based color palette'
 )
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('2a606880fbe2530fa0ec9bbf172db118e37899b5fcd800a699caafc859d5bfbe')
 
 package() {
     cd "$pkgname-$pkgver"

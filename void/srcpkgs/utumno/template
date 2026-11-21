@@ -17,7 +17,7 @@ license="MIT"
 homepage="https://github.com/dani-77/utumno"
 changelog="https://github.com/dani-77/utumno/releases"
 distfiles="https://github.com/dani-77/utumno/archive/refs/tags/${version}.tar.gz"
-checksum=SKIP
+checksum=2a606880fbe2530fa0ec9bbf172db118e37899b5fcd800a699caafc859d5bfbe
 repository=d77
 
 post_install() {
