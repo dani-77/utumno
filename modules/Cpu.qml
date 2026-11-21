@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../config" as Cfg
 
@@ -48,4 +49,7 @@ Item {
         font.pixelSize: Cfg.Colors.fsize
         text: "󰻠 " + root.usage + "%"
     }
+
+    Process { id: monitorProc; command: [Quickshell.shellDir + "/monitor/d77-monitor", "cpu"] }
+    MouseArea { anchors.fill: parent; acceptedButtons: Qt.LeftButton; onClicked: monitorProc.running = true }
 }
