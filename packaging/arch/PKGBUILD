@@ -1,7 +1,7 @@
 # Maintainer: Daniel Azevedo <daniazevedo77@posteo.net>
 
 pkgname=utumno
-pkgver=0.4.0
+pkgver=0.4.1
 pkgrel=1
 pkgdesc="Minimal Quickshell shell for Wayland compositors, lighter sibling of quickshell-d77"
 arch=('any')
