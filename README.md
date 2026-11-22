@@ -77,7 +77,7 @@ On the bar (left to right): a **launcher** button to open apps, an **AI** button
 the chat popup, then the clock, weather, CPU/RAM, volume, network and battery — and a
 **power** button on the right to suspend, reboot, log out or shut down.
 
-Click CPU or RAM to toggle the centered Eww system monitor. It uses `dgop` for data and the shared Matugen palette. The packages install `eww` and `dgop`; the Makefile carries the `monitor/` script and configuration with the shell.
+Click CPU or RAM to toggle the centered Eww system monitor. It uses `dgop` for data (or `atop` where there is no `dgop`) and the shared Matugen palette. The packages install `eww` and `dgop`; the Makefile carries the `monitor/` script and configuration with the shell.
 
 Suggested shortcuts to add to your compositor config:
 
