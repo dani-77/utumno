@@ -48,7 +48,9 @@ compositor.
   `xbps-src`/`xbps-install` pull it in automatically. `quickshell` itself is
   deliberately left out of `depends` (pinning it would hold back system
   upgrades) — install it yourself alongside this package. Optional pieces (a wallpaper daemon, PAM for the lock
-  screen, `elogind` for the session menu — see the
+  screen, `elogind` for the session menu, `cmus`/`ffmpeg`/`tmux` for the
+  dashboard's music card and the music picker, `lm_sensors` for the
+  dashboard's temperature card, `greetd`/`dwl` for the login greeter — see the
   [technical documentation](../doc/README.md#dependencies-void-linux)) are
   left out of `depends` since they're either already part of a typical
   desktop setup or a matter of choosing one of several alternatives.

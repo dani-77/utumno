@@ -10,8 +10,10 @@ makedepends="wayland-devel"
 # Install quickshell yourself alongside this package.
 # matugen (from the official Void repo) generates the wallpaper palette; xbps has no
 # optional dependencies, and an unversioned one never holds back upgrades.
-depends="power-profiles-daemon alsa-utils alsa-tools brightnessctl wireless_tools matugen eww dgop"
-short_desc="Minimal Quickshell shell for wayland compositors, lighter sibling of quickshell-d77"
+# iw: Wi-Fi SSID in the dashboard. Optional extras (cmus, ffmpeg, tmux,
+# lm_sensors, greetd, dwl...) are listed in doc/README.md.
+depends="power-profiles-daemon alsa-utils alsa-tools brightnessctl wireless_tools iw curl matugen eww dgop"
+short_desc="Quickshell desktop shell for wayland compositors"
 maintainer="Daniel Azevedo <daniazevedo77@posteo.net>"
 license="MIT"
 homepage="https://github.com/dani-77/utumno"

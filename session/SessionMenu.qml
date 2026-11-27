@@ -38,6 +38,14 @@ Scope {
     function close()  { root.sessionOpen = false }
     function toggle() { root.sessionOpen = !root.sessionOpen }
 
+    // Direct session actions, without opening the menu — used by the
+    // Dashboard's session buttons (wired up in shell.qml). Failures still
+    // surface through the session error banner below.
+    function suspend()  { suspendProc.running  = true }
+    function reboot()   { rebootProc.running   = true }
+    function poweroff() { shutdownProc.running = true }
+    function logout()   { logoutProc.running   = true }
+
     function _sessionCmd(action) {
         return ["sh", "-c", "loginctl " + action + " 2>&1 || systemctl " + action + " 2>&1"]
     }
