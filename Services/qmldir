@@ -1,3 +1,4 @@
 module Services
 
 singleton WallpaperState 1.0 WallpaperState.qml
+singleton CmusControl    1.0 CmusControl.qml

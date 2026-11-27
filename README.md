@@ -5,29 +5,31 @@
 <h1 align="center">Utumno</h1>
 
 <p align="center">
-  A clean, minimal desktop shell for Linux — top bar, app launcher, wallpaper picker,
-  lock screen, session menu, volume/brightness display and a local AI chat popup.
+  A clean desktop shell for Linux — top bar, app launcher, dashboard, music picker,
+  wallpaper picker, lock screen, login screen, session menu, volume/brightness display
+  and a local AI chat popup.
 </p>
 
 ---
 
 ## What is this?
 
-Utumno adds a lightweight desktop bar and a handful of everyday tools on top of a
-Wayland desktop: a launcher to start apps, a picker to change your wallpaper, a lock
-screen, a menu to suspend/reboot/log out, on-screen volume and brightness feedback, and
-a popup to chat with a locally-running AI model.
+Utumno adds a desktop bar and a handful of everyday tools on top of a Wayland desktop:
+a launcher to start apps, a dashboard with quick system stats, weather and music
+controls, an album picker that plays through cmus, a picker to change your wallpaper, a
+lock screen, an optional login screen (greeter), a menu to suspend/reboot/log out,
+on-screen volume and brightness feedback, and a popup to chat with a locally-running AI
+model.
 
 It's built on **[Quickshell](https://quickshell.org)** (the `qs` command) and works on
 **[niri](https://github.com/YaLTeR/niri)** and **[Hyprland](https://hyprland.org)** (Sway
 and other similar compositors should work too, but are less tested).
 
-> **Already using [quickshell-d77](https://github.com/dani-77/quickshell-d77)?** Utumno
-> is its smaller sibling — same look, same keybinds, same shortcuts — just without the
-> dashboard, music player and login screen. The two share settings (like the AI chat's
-> last-used model), so switching between them, or running them on different machines,
-> feels the same. If you want the fuller experience, get quickshell-d77 instead; if you
-> want something leaner, Utumno is for you.
+> **Coming from [quickshell-d77](https://github.com/dani-77/quickshell-d77)?** Utumno
+> now carries everything it had — including the dashboard, the music picker and the
+> login screen — with the same look, keybinds and IPC names. The two share settings
+> (the AI chat's last-used model, the wallpaper palette, the greeter's last login), so
+> switching over is painless.
 
 ## Before you install
 
@@ -87,6 +89,8 @@ Suggested shortcuts to add to your compositor config:
 | `Mod + Y` | Open/close the wallpaper picker |
 | `Mod + L` | Lock the screen |
 | `Mod + Shift + E` | Open/close the power menu |
+| `Mod + I` | Open/close the dashboard |
+| `Mod + M` | Open/close the music picker |
 | Volume/brightness keys | Show the on-screen volume/brightness indicator |
 
 **niri** (`config.kdl`):
@@ -97,6 +101,8 @@ binds {
     Mod+Y          { spawn "qs" "-c" "utumno" "ipc" "call" "wallpaper" "toggle"; }
     Mod+L          { spawn "qs" "-c" "utumno" "ipc" "call" "lockscreen" "lock"; }
     Mod+Shift+E    { spawn "qs" "-c" "utumno" "ipc" "call" "session" "toggle"; }
+    Mod+I          { spawn "qs" "-c" "utumno" "ipc" "call" "dashboard" "toggle"; }
+    Mod+M          { spawn "qs" "-c" "utumno" "ipc" "call" "musicpicker" "toggle"; }
 }
 ```
 
@@ -107,7 +113,13 @@ bind = SUPER, D, exec, qs -c utumno ipc call launcher toggle
 bind = SUPER, Y, exec, qs -c utumno ipc call wallpaper toggle
 bind = SUPER, L, exec, qs -c utumno ipc call lockscreen lock
 bind = SUPER SHIFT, E, exec, qs -c utumno ipc call session toggle
+bind = SUPER, I, exec, qs -c utumno ipc call dashboard toggle
+bind = SUPER, M, exec, qs -c utumno ipc call musicpicker toggle
 ```
+
+On Hyprland, Utumno also registers `GlobalShortcut`s (`quickshell:launcher`,
+`quickshell:session`, `quickshell:lock`, `quickshell:dashboard`), so
+`bind = SUPER, I, global, quickshell:dashboard` works too.
 
 > **Tip:** all of those `qs -c utumno ipc call ...` commands can be shortened if you have
 > [`qsd77`](https://github.com/dani-77/qsd77) installed — a small companion CLI for
@@ -138,6 +150,27 @@ It's a chat window that talks to a [Ollama](https://ollama.com) instance running
 your own machine — nothing is sent anywhere else. If Ollama has no models installed
 yet, Utumno downloads a small one automatically so there's something to chat with
 right away; you can switch to a bigger model any time from the popup itself.
+
+### The dashboard and music picker
+
+`Mod + I` opens a panel below the bar with CPU/RAM/temperature/disk, the weather, a
+network shortcut (`nmtui`), lock/log out/reboot/power off buttons and
+[cmus](https://cmus.github.io) controls. If cmus isn't running, the music card offers
+to start it headless (in `tmux`, or `screen`). The magnifier button (or `Mod + M`)
+opens the music picker: type to search your albums (from cmus's library plus your XDG
+music folder) and press `Enter` to play one.
+
+These need a few optional tools: `cmus` for music, `ffmpeg` (`ffprobe`) for reading
+album tags, `tmux` or `screen` to start cmus headless, and `lm_sensors` for the CPU
+temperature (it falls back to the kernel's thermal zone). Anything missing just leaves
+that card empty.
+
+### The login screen (greeter)
+
+`greeter/` is an optional native login screen for
+[greetd](https://github.com/kennylevinsen/greetd), with the same look as the rest of
+Utumno. Setting it up touches your system's login configuration, so it's a manual
+step — see [greeter/README.md](greeter/README.md).
 
 ### Changing your wallpaper
 

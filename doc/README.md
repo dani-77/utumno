@@ -6,9 +6,9 @@
 A minimal QML/Quickshell desktop shell for Wayland compositors, in the same spirit as
 [`fabric-d77`](https://github.com/dani-77/fabric-d77) and
 [`quickshell-d77`](https://github.com/dani-77/quickshell-d77) — Tokyo Night theme,
-lean tooling, terminal-first workflow. Deliberately lighter than `quickshell-d77`: it ports
-the bar, launcher, wallpaper picker, lockscreen, session menu, OSD and Ollama chat popup,
-but leaves out the dashboard, music picker and greeter, which quickshell-d77 still owns.
+lean tooling, terminal-first workflow. It now carries everything `quickshell-d77` had:
+the bar, launcher, wallpaper picker, lockscreen, session menu, OSD, Ollama chat popup,
+dashboard, cmus music picker and the greetd login greeter.
 
 Built primarily for [niri](https://github.com/YaLTeR/niri), and works just as well on
 [Hyprland](https://hyprland.org/) — `shell.qml` auto-detects the running compositor
@@ -114,9 +114,26 @@ instead of an inline `g` singleton:
   download like any manual install would. A **Cancel** link next to the progress banner stops
   it (or any manual install) at any point.
 
-Not ported on purpose (kept lighter than quickshell-d77): the dashboard, the cmus-backed
-music picker, and the greetd login greeter — the last one especially, since it would mean
-touching this system's actual live login configuration.
+- **`dashboard/`** — quick panel below the bar (top-left): CPU/RAM/temperature/disk
+  cards, wttr.in weather, cmus controls (via `Services/CmusControl.qml`), an `nmtui`
+  shortcut and lock/logout/reboot/poweroff buttons. The session buttons go through
+  `session/SessionMenu.qml`'s own procs (`suspend()`/`reboot()`/`poweroff()`/`logout()`),
+  so failures show up in the same error banner. Temperature comes from `sensors`
+  (`lm_sensors`), falling back to `/sys/class/thermal/thermal_zone0`; the Wi-Fi SSID from
+  `iw`. No bar button — IPC/keybind only, same as quickshell-d77.
+- **`musicpicker/`** — searchable Artist/Album popup. Albums come from cmus's live
+  library merged with a scan of the XDG music folder (`xdg-user-dir MUSIC`, falling back
+  to `~/Música`); labels are read from the audio tags with `ffprobe` when available.
+  Plays through `Services.CmusControl.playAlbum()`.
+- **`Services/CmusControl.qml`** — singleton wrapping `cmus-remote` (status, transport,
+  album skip, headless start in `tmux`/`screen`, play album). Reads the running cmus's own
+  `XDG_RUNTIME_DIR`/`HOME` from `/proc/<pid>/environ`, so a cmus that outlived a logout
+  is still reachable.
+- **`greeter/`** — native greetd greeter (standalone config root, started by greetd via
+  `greeter/assets/greet-dwl.sh` under a disposable dwl). Not loaded by `shell.qml`; see
+  [greeter/README.md](../greeter/README.md) for the manual setup.
+- **`HyprlandShortcuts.qml`** — Hyprland `GlobalShortcut` fallback (`quickshell:launcher`,
+  `quickshell:session`, `quickshell:lock`, `quickshell:dashboard`), loaded only on Hyprland.
 
 Every ported module exposes the **same IPC target/function names as quickshell-d77** (see
 below), so muscle memory and keybinds carry over directly.
@@ -136,6 +153,18 @@ Optional, depending on which ported modules you use:
 - **Session menu**: `elogind` (Void's non-systemd `loginctl`/`systemctl` provider — usually
   already pulled in by your desktop meta-package)
 - **OSD power profile cycling**: `power-profiles-daemon` (`powerprofilesctl`)
+- **Dashboard**: `iw` (Wi-Fi SSID; in the package's `depends`), `curl` (weather),
+  `lm_sensors` (CPU temperature — optional, falls back to the kernel thermal zone),
+  `NetworkManager` (`nmtui` shortcut)
+- **Dashboard music card / music picker**: `cmus`, `ffmpeg` (`ffprobe`, album tags),
+  `tmux` or `screen` (headless cmus start), `xdg-user-dirs` (music folder)
+- **Greeter**: `greetd`, `dwl` (hosts the greeter before login), `xinit` (only for X11
+  sessions), and a Quickshell built with `Quickshell.Services.Greetd`
+
+```sh
+sudo xbps-install iw curl lm_sensors cmus ffmpeg tmux xdg-user-dirs   # dashboard + music
+sudo xbps-install greetd dwl                                          # greeter
+```
 
 ## Installation
 
@@ -206,7 +235,8 @@ utumno/
 ├── config/
 │   └── Colors.qml          # Tokyo Night singleton (colors + font/fsize)
 ├── Services/
-│   └── WallpaperState.qml  # singleton: currently active wallpaper path
+│   ├── WallpaperState.qml  # singleton: currently active wallpaper path
+│   └── CmusControl.qml     # singleton: cmus-remote wrapper (dashboard + music picker)
 ├── backdrop/
 │   ├── Backdrop.qml
 │   ├── WallpaperBackground.qml
@@ -230,6 +260,16 @@ utumno/
 │   └── SessionMenu.qml     # suspend/reboot/poweroff/logout + error banner
 ├── ollamachat/
 │   └── OllamaChat.qml      # chat popup for a local Ollama daemon
+├── dashboard/
+│   └── Dashboard.qml       # stats, weather, cmus, nmtui, session buttons
+├── musicpicker/
+│   └── MusicPicker.qml     # Artist/Album search, plays via cmus
+├── greeter/                # standalone greetd greeter (see greeter/README.md)
+│   ├── shell.qml           # entry point greetd runs (qs -p greeter/)
+│   ├── Greeter.qml / GreeterSurface.qml / GreeterState.qml / GreeterBackdrop.qml
+│   ├── greetd-config.toml.example
+│   └── assets/greet-dwl.sh
+├── HyprlandShortcuts.qml   # GlobalShortcut fallback, Hyprland only
 └── void/                   # Void Linux xbps-src packaging (see void/README.md)
 ```
 
@@ -272,6 +312,16 @@ qs -c utumno ipc call ollamachat toggle
 qs -c utumno ipc call ollamachat open
 qs -c utumno ipc call ollamachat close
 
+qs -c utumno ipc call dashboard toggle
+qs -c utumno ipc call dashboard open
+qs -c utumno ipc call dashboard close
+
+qs -c utumno ipc call musicpicker toggle
+qs -c utumno ipc call musicpicker open
+qs -c utumno ipc call musicpicker close
+qs -c utumno ipc call musicpicker reload
+qs -c utumno ipc call musicpicker play "/path/to/Artist/Album"
+
 qs -c utumno ipc show     # list every target/function exposed
 ```
 
@@ -283,6 +333,8 @@ binds {
     Mod+Shift+E    { spawn "qs" "-c" "utumno" "ipc" "call" "session" "toggle"; }
     Mod+L          { spawn "qs" "-c" "utumno" "ipc" "call" "lockscreen" "lock"; }
     Mod+Y          { spawn "qs" "-c" "utumno" "ipc" "call" "wallpaper" "toggle"; }
+    Mod+I          { spawn "qs" "-c" "utumno" "ipc" "call" "dashboard" "toggle"; }
+    Mod+M          { spawn "qs" "-c" "utumno" "ipc" "call" "musicpicker" "toggle"; }
 
     XF86AudioRaiseVolume  { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "volumeUp"; }
     XF86AudioLowerVolume  { spawn "qs" "-c" "utumno" "ipc" "call" "osd" "volumeDown"; }
@@ -299,6 +351,8 @@ bind = SUPER, D, exec, qs -c utumno ipc call launcher toggle
 bind = SUPER SHIFT, E, exec, qs -c utumno ipc call session toggle
 bind = SUPER, L, exec, qs -c utumno ipc call lockscreen lock
 bind = SUPER, Y, exec, qs -c utumno ipc call wallpaper toggle
+bind = SUPER, I, exec, qs -c utumno ipc call dashboard toggle
+bind = SUPER, M, exec, qs -c utumno ipc call musicpicker toggle
 
 bindel = , XF86AudioRaiseVolume, exec, qs -c utumno ipc call osd volumeUp
 bindel = , XF86AudioLowerVolume, exec, qs -c utumno ipc call osd volumeDown

@@ -9,6 +9,8 @@ import "lockscreen"
 import "session"
 import "wallpaper"
 import "ollamachat"
+import "dashboard"
+import "musicpicker"
 
 ShellRoot {
     id: root
@@ -102,6 +104,45 @@ ShellRoot {
         id: ollamaChat
     }
 
+    // ══════════════════════════════════════════════════════
+    // DASHBOARD (quick panel: stats, weather, cmus, session)
+    // ══════════════════════════════════════════════════════
+    // Ported from quickshell-d77. Appears in the top-left corner, below the
+    // bar. Toggled via IPC (qs -c utumno ipc call dashboard toggle) or the
+    // Hyprland GlobalShortcut "quickshell:dashboard" (suggestion: SUPER, I).
+    // Session buttons go through the same SessionMenu procs (and error
+    // banner) as the power menu.
+    Dashboard {
+        id: dashboard
+        onLockRequested:        lockScreen.lock()
+        onLogoutRequested:      sessionPopup.logout()
+        onRebootRequested:      sessionPopup.reboot()
+        onPoweroffRequested:    sessionPopup.poweroff()
+        onMusicPickerRequested: musicPicker.open()
+    }
+
+    // ══════════════════════════════════════════════════════
+    // MUSIC PICKER
+    // ══════════════════════════════════════════════════════
+    // Ported from quickshell-d77. Artist/Album picker that plays the pick
+    // through Services.CmusControl (cmus). Opened from the Dashboard's
+    // "Browse albums" button or via IPC.
+    MusicPicker {
+        id: musicPicker
+    }
+
+    // ── Global Hyprland keybinds (fallback, loaded only on Hyprland) ──
+    Loader {
+        active: root.compositor === "hyprland"
+        source: "HyprlandShortcuts.qml"
+        onLoaded: {
+            item.appLauncher = launcherPopup;
+            item.sessionMenu = sessionPopup;
+            item.lockScreen = lockScreen;
+            item.dashboard = dashboard;
+        }
+    }
+
     IpcHandler {
         target: "launcher"
 
@@ -144,6 +185,24 @@ ShellRoot {
         function toggle(): void { ollamaChat.toggle() }
         function open(): void { ollamaChat.open() }
         function close(): void { ollamaChat.close() }
+    }
+
+    IpcHandler {
+        target: "dashboard"
+
+        function toggle(): void { dashboard.toggle() }
+        function open(): void { dashboard.open() }
+        function close(): void { dashboard.close() }
+    }
+
+    IpcHandler {
+        target: "musicpicker"
+
+        function toggle(): void { musicPicker.toggle() }
+        function open(): void { musicPicker.open() }
+        function close(): void { musicPicker.close() }
+        function reload(): void { musicPicker.reload() }
+        function play(path: string): void { musicPicker.playPath(path) }
     }
 
     IpcHandler {
