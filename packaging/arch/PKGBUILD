@@ -1,7 +1,7 @@
 # Maintainer: Daniel Azevedo <daniazevedo77@posteo.net>
 
 pkgname=utumno
-pkgver=0.4.1
+pkgver=0.5.0
 pkgrel=1
 pkgdesc="Quickshell desktop shell for Wayland compositors (bar, launcher, dashboard, greeter)"
 arch=('any')
@@ -27,7 +27,7 @@ optdepends=(
   'xorg-xinit: X11 sessions from the greeter (startx)'
 )
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('6196f6bd080c04f3b646a87f6b882a15c0144352c25a6549586e8be4a1bbb555')
+sha256sums=('6dc986f59cf257e5813d876557916a6989e82ea3ec0585b3538d76655e94f107')
 
 package() {
     cd "$pkgname-$pkgver"
